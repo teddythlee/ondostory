@@ -159,13 +159,27 @@ export default function PostEditor({ post }: Props) {
             placeholder="제목을 입력하세요"
             className="w-full text-3xl font-bold border-0 outline-none bg-transparent placeholder-gray-300 py-2"
           />
-          <input
-            type="text"
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
-            placeholder="요약 (검색결과에 표시됩니다)"
-            className="w-full text-base border-0 outline-none bg-transparent placeholder-gray-300 text-gray-600 py-1"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              placeholder="요약 (검색결과에 표시됩니다)"
+              className="flex-1 text-base border-0 outline-none bg-transparent placeholder-gray-300 text-gray-600 py-1"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const text = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160)
+                setExcerpt(text)
+              }}
+              disabled={!content}
+              title="본문에서 요약 자동 추출"
+              className="text-xs text-gray-400 hover:text-gray-700 border border-gray-200 rounded px-1.5 py-0.5 shrink-0 disabled:opacity-40"
+            >
+              ↺ 자동
+            </button>
+          </div>
           <RichEditor ref={editorRef} content={content} onChange={setContent} />
         </div>
 
@@ -266,9 +280,13 @@ export default function PostEditor({ post }: Props) {
               />
                 <button
                   type="button"
-                  onClick={() => setMetaDescription(excerpt)}
-                  disabled={!excerpt}
-                  title="요약으로 채우기"
+                  onClick={() => {
+                    const text = excerpt ||
+                      content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160)
+                    setMetaDescription(text)
+                  }}
+                  disabled={!excerpt && !content}
+                  title="요약/본문에서 채우기"
                   className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 hover:bg-gray-50 disabled:opacity-40 self-start"
                 >
                   ↺
