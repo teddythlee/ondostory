@@ -235,23 +235,45 @@ export default function PostEditor({ post }: Props) {
             <h3 className="font-semibold text-sm text-gray-700">SEO 설정</h3>
             <div>
               <label className="block text-xs text-gray-500 mb-1">SEO 제목 (없으면 제목 사용)</label>
-              <input
-                type="text"
-                value={metaTitle}
-                onChange={(e) => setMetaTitle(e.target.value)}
-                placeholder={title || 'SEO 제목'}
-                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400"
-              />
+              <div className="flex gap-1">
+                <input
+                  type="text"
+                  value={metaTitle}
+                  onChange={(e) => setMetaTitle(e.target.value)}
+                  placeholder={title || 'SEO 제목'}
+                  className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMetaTitle(title)}
+                  disabled={!title}
+                  title="제목으로 채우기"
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  ↺
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">SEO 설명 (없으면 요약 사용)</label>
+              <div className="flex gap-1 items-start">
               <textarea
                 value={metaDescription}
                 onChange={(e) => setMetaDescription(e.target.value)}
                 placeholder={excerpt || 'SEO 설명'}
                 rows={3}
-                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 resize-none"
+                className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 resize-none"
               />
+                <button
+                  type="button"
+                  onClick={() => setMetaDescription(excerpt)}
+                  disabled={!excerpt}
+                  title="요약으로 채우기"
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 hover:bg-gray-50 disabled:opacity-40 self-start"
+                >
+                  ↺
+                </button>
+              </div>
             </div>
             <div className="text-xs text-gray-400 bg-blue-50 rounded-lg p-2">
               💡 발행 시 Google Indexing API에 자동으로 크롤링 요청이 전송됩니다.
