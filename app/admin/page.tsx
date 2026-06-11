@@ -68,40 +68,40 @@ export default async function AdminPage() {
               </Link>
             </div>
           ) : (
-            <table className="w-full">
+            <table className="w-full table-fixed">
               <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-3 text-left">제목</th>
-                  <th className="px-6 py-3 text-left">태그</th>
-                  <th className="px-6 py-3 text-left">상태</th>
-                  <th className="px-6 py-3 text-left">날짜</th>
-                  <th className="px-6 py-3 text-right">작업</th>
+                  <th className="px-6 py-3 text-left w-[40%]">제목</th>
+                  <th className="px-4 py-3 text-left w-[20%]">태그</th>
+                  <th className="px-4 py-3 text-left w-[13%]">상태</th>
+                  <th className="px-4 py-3 text-left w-[12%]">날짜</th>
+                  <th className="px-4 py-3 text-right w-[15%]">작업</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {posts.map((post) => (
                   <tr key={post.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
-                      <Link href={`/admin/posts/${post.id}`} className="font-medium text-gray-900 hover:text-blue-600">
+                      <Link href={`/admin/posts/${post.id}`} className="font-medium text-gray-900 hover:text-blue-600 line-clamp-2 leading-snug block">
                         {post.title}
                       </Link>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <div className="flex gap-1 flex-wrap">
-                        {post.tags.slice(0, 3).map(tag => (
+                        {post.tags.slice(0, 2).map(tag => (
                           <span key={tag} className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-600">{tag}</span>
                         ))}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${post.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    <td className="px-4 py-4">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${post.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                         {post.published ? '발행됨' : '임시저장'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
                       {format(new Date(post.created_at), 'yy.MM.dd', { locale: ko })}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-4 text-right whitespace-nowrap">
                       <Link href={`/admin/posts/${post.id}`} className="text-sm text-blue-500 hover:underline mr-3">
                         편집
                       </Link>

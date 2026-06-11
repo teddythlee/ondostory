@@ -58,11 +58,14 @@ export async function POST(req: NextRequest) {
     const status = statusMatch?.[1] ?? 'DRAFT'
 
     const titleMatch = entry.match(/<title[^>]*>([^<]*)<\/title>/)
-    const title = titleMatch?.[1]
+    const title = (titleMatch?.[1]
       ?.replace(/&amp;/g, '&')
       ?.replace(/&lt;/g, '<')
       ?.replace(/&gt;/g, '>')
-      ?.replace(/&quot;/g, '"') ?? ''
+      ?.replace(/&quot;/g, '"') ?? '')
+      .replace(/^#+\s*/g, '')
+      .replace(/\s*#+\s*/g, ' ')
+      .trim()
 
     const contentMatch = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/)
     const rawContent = contentMatch?.[1]
