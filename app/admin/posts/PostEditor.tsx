@@ -248,7 +248,7 @@ export default function PostEditor({ post }: Props) {
           <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
             <h3 className="font-semibold text-sm text-gray-700">SEO 설정</h3>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">SEO 제목 (없으면 제목 사용)</label>
+              <label className="block text-xs text-gray-500 mb-1">SEO 제목 <span className="text-gray-400">(비우면 글 제목 사용)</span></label>
               <div className="flex gap-1">
                 <input
                   type="text"
@@ -269,7 +269,7 @@ export default function PostEditor({ post }: Props) {
               </div>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">SEO 설명 (없으면 요약 사용)</label>
+              <label className="block text-xs text-gray-500 mb-1">SEO 설명 <span className="text-gray-400">(비우면 요약 필드 사용 · ↺는 본문 앞 160자 발췌)</span></label>
               <div className="flex gap-1 items-start">
               <textarea
                 value={metaDescription}
