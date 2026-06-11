@@ -4,6 +4,7 @@ import { getPostBySlug, getPublishedPosts } from '@/lib/posts'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { Metadata } from 'next'
+import RelatedPosts from '@/components/blog/RelatedPosts'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,6 +47,8 @@ export default async function PostPage({ params }: Props) {
   const { slug } = await params
   const post = await getPostBySlug(slug)
   if (!post) notFound()
+
+  const allPosts = await getPublishedPosts().catch(() => [])
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
   const url = `${siteUrl}/blog/${post.slug}`
@@ -122,7 +125,9 @@ export default async function PostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
-        <div className="mt-16 pt-8 border-t border-gray-100">
+        <RelatedPosts current={post} all={allPosts} />
+
+        <div className="mt-10 pt-8 border-t border-gray-100">
           <Link
             href="/blog"
             className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors"

@@ -8,6 +8,7 @@ export async function getAdminSession() {
 
   const { data, error } = await supabaseAdmin.auth.getUser(token)
   if (error || !data.user) return null
+  if (data.user.user_metadata?.role !== 'admin') return null
   return data.user
 }
 

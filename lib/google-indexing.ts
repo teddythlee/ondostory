@@ -37,6 +37,30 @@ export async function notifyGoogleIndexing(url: string, type: 'URL_UPDATED' | 'U
   }
 }
 
+export async function notifyIndexNow(url: string) {
+  const apiKey = process.env.INDEXNOW_API_KEY
+  if (!apiKey) return
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
+  const host = new URL(siteUrl).hostname
+
+  try {
+    const res = await fetch('https://api.indexnow.org/indexnow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        host,
+        key: apiKey,
+        keyLocation: `${siteUrl}/${apiKey}.txt`,
+        urlList: [url],
+      }),
+    })
+    console.log('IndexNow response:', res.status)
+  } catch (err) {
+    console.error('IndexNow error:', err)
+  }
+}
+
 export async function notifyGoogleSitemapPing(siteUrl: string) {
   const sitemapUrl = `${siteUrl}/sitemap.xml`
   try {

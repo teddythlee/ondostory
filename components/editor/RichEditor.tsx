@@ -8,7 +8,15 @@ import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import ImageModal, { type ImageSize } from './ImageModal'
+
+const SIZE_MAP: Record<ImageSize, string> = {
+  small: '25%',
+  medium: '50%',
+  large: '75%',
+  full: '100%',
+}
 
 const ToolbarButton = ({
   onClick,
@@ -40,6 +48,8 @@ export default function RichEditor({
   content: string
   onChange: (html: string) => void
 }) {
+  const [showImageModal, setShowImageModal] = useState(false)
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -47,7 +57,7 @@ export default function RichEditor({
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Highlight.configure({ multicolor: false }),
       Link.configure({ openOnClick: false }),
-      Image,
+      Image.configure({ HTMLAttributes: { class: 'rounded-lg' } }),
       Placeholder.configure({ placeholder: '글을 작성하세요...' }),
     ],
     content,
@@ -65,9 +75,9 @@ export default function RichEditor({
 
   if (!editor) return null
 
-  const addImage = () => {
-    const url = window.prompt('이미지 URL을 입력하세요')
-    if (url) editor.chain().focus().setImage({ src: url }).run()
+  function handleImageInsert(src: string, size: ImageSize) {
+    const width = SIZE_MAP[size]
+    editor?.chain().focus().setImage({ src, alt: '', width } as never).run()
   }
 
   const setLink = () => {
@@ -77,43 +87,52 @@ export default function RichEditor({
   }
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden tiptap-editor">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-gray-100 bg-gray-50">
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="굵게">
-          <b>B</b>
-        </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="기울임">
-          <i>I</i>
-        </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="밑줄">
-          <u>U</u>
-        </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="취소선">
-          <s>S</s>
-        </ToolbarButton>
-        <div className="w-px h-5 bg-gray-200 mx-1" />
-        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="제목 1">H1</ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} title="제목 2">H2</ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })} title="제목 3">H3</ToolbarButton>
-        <div className="w-px h-5 bg-gray-200 mx-1" />
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="목록">• 목록</ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="번호 목록">1. 목록</ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용">❝</ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleCodeBlock().run()} active={editor.isActive('codeBlock')} title="코드">{'</>'}</ToolbarButton>
-        <div className="w-px h-5 bg-gray-200 mx-1" />
-        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('left').run()} active={editor.isActive({ textAlign: 'left' })} title="왼쪽 정렬">≡</ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('center').run()} active={editor.isActive({ textAlign: 'center' })} title="가운데 정렬">≡</ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('right').run()} active={editor.isActive({ textAlign: 'right' })} title="오른쪽 정렬">≡</ToolbarButton>
-        <div className="w-px h-5 bg-gray-200 mx-1" />
-        <ToolbarButton onClick={setLink} active={editor.isActive('link')} title="링크">🔗</ToolbarButton>
-        <ToolbarButton onClick={addImage} title="이미지">🖼️</ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} title="구분선">—</ToolbarButton>
-        <div className="w-px h-5 bg-gray-200 mx-1" />
-        <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="되돌리기">↩</ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().redo().run()} title="다시실행">↪</ToolbarButton>
+    <>
+      <div className="border border-gray-200 rounded-xl overflow-hidden tiptap-editor">
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-gray-100 bg-gray-50">
+          <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="굵게">
+            <b>B</b>
+          </ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="기울임">
+            <i>I</i>
+          </ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="밑줄">
+            <u>U</u>
+          </ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="취소선">
+            <s>S</s>
+          </ToolbarButton>
+          <div className="w-px h-5 bg-gray-200 mx-1" />
+          <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="제목 1">H1</ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} title="제목 2">H2</ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })} title="제목 3">H3</ToolbarButton>
+          <div className="w-px h-5 bg-gray-200 mx-1" />
+          <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="목록">• 목록</ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="번호 목록">1. 목록</ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용">❝</ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().toggleCodeBlock().run()} active={editor.isActive('codeBlock')} title="코드">{'</>'}</ToolbarButton>
+          <div className="w-px h-5 bg-gray-200 mx-1" />
+          <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('left').run()} active={editor.isActive({ textAlign: 'left' })} title="왼쪽 정렬">≡</ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('center').run()} active={editor.isActive({ textAlign: 'center' })} title="가운데 정렬">≡</ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('right').run()} active={editor.isActive({ textAlign: 'right' })} title="오른쪽 정렬">≡</ToolbarButton>
+          <div className="w-px h-5 bg-gray-200 mx-1" />
+          <ToolbarButton onClick={setLink} active={editor.isActive('link')} title="링크">🔗</ToolbarButton>
+          <ToolbarButton onClick={() => setShowImageModal(true)} title="이미지">🖼️</ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} title="구분선">—</ToolbarButton>
+          <div className="w-px h-5 bg-gray-200 mx-1" />
+          <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="되돌리기">↩</ToolbarButton>
+          <ToolbarButton onClick={() => editor.chain().focus().redo().run()} title="다시실행">↪</ToolbarButton>
+        </div>
+        <EditorContent editor={editor} />
       </div>
-      <EditorContent editor={editor} />
-    </div>
+
+      {showImageModal && (
+        <ImageModal
+          onInsert={handleImageInsert}
+          onClose={() => setShowImageModal(false)}
+        />
+      )}
+    </>
   )
 }

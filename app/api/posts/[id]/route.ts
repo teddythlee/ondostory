@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { updatePost, deletePost } from '@/lib/posts'
-import { notifyGoogleIndexing, notifyGoogleSitemapPing } from '@/lib/google-indexing'
+import { notifyGoogleIndexing, notifyGoogleSitemapPing, notifyIndexNow } from '@/lib/google-indexing'
 import { requireAdmin } from '@/lib/auth'
 
 interface Props { params: Promise<{ id: string }> }
@@ -18,6 +18,7 @@ export async function PATCH(req: NextRequest, { params }: Props) {
 
     if (post.published) {
       await notifyGoogleIndexing(postUrl, 'URL_UPDATED')
+      await notifyIndexNow(postUrl)
       await notifyGoogleSitemapPing(siteUrl)
     }
 
