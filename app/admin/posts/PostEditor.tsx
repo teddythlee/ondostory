@@ -23,20 +23,43 @@ export default function PostEditor({ post }: Props) {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [slugEdited, setSlugEdited] = useState(!!post)
+  const [translating, setTranslating] = useState(false)
 
   useEffect(() => {
-    if (!slugEdited && title) {
-      setSlug(generateSlug(title))
-    }
+    if (slugEdited || !title) return
+    const timer = setTimeout(() => generateSlugFromTitle(title), 600)
+    return () => clearTimeout(timer)
   }, [title, slugEdited])
 
-  function generateSlug(text: string) {
+  function toSlug(text: string) {
     return text
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-')
-      .replace(/-+/g, '-') || `post-${Date.now()}`
+      .replace(/-+/g, '-')
+  }
+
+  async function generateSlugFromTitle(text: string) {
+    const hasKorean = /[가-힣]/.test(text)
+    if (!hasKorean) {
+      setSlug(toSlug(text) || `post-${Date.now()}`)
+      return
+    }
+    setTranslating(true)
+    try {
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ko|en`
+      )
+      const data = await res.json()
+      const translated = data?.responseData?.translatedText || ''
+      const slug = toSlug(translated)
+      setSlug(slug || `post-${Date.now()}`)
+    } catch {
+      setSlug(`post-${Date.now()}`)
+    } finally {
+      setTranslating(false)
+    }
   }
 
   async function handleSave(publishNow?: boolean) {
@@ -157,12 +180,15 @@ export default function PostEditor({ post }: Props) {
               <span className="text-sm text-gray-700">발행 상태</span>
             </label>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">URL 슬러그</label>
+              <label className="block text-xs text-gray-500 mb-1">
+                URL 슬러그 {translating && <span className="text-blue-400">번역 중...</span>}
+              </label>
               <input
                 type="text"
                 value={slug}
                 onChange={(e) => { setSlug(e.target.value); setSlugEdited(true) }}
-                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 font-mono"
+                disabled={translating}
+                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 font-mono disabled:opacity-50"
               />
             </div>
           </div>
