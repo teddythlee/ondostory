@@ -8,7 +8,7 @@ import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
-import { useEffect, useState, forwardRef, useImperativeHandle } from 'react'
+import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import ImageModal, { type ImageSize } from './ImageModal'
 import { resizeImage } from '@/lib/resizeImage'
 
@@ -49,6 +49,8 @@ export interface RichEditorHandle {
 const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (html: string) => void }>(
   function RichEditor({ content, onChange }, ref) {
     const [showImageModal, setShowImageModal] = useState(false)
+  const [imagePopup, setImagePopup] = useState<{ top: number; left: number } | null>(null)
+  const editorWrapRef = useRef<HTMLDivElement>(null)
 
     const editor = useEditor({
       extensions: [
@@ -109,6 +111,26 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
     }))
 
     useEffect(() => {
+      if (!editor) return
+      const dom = editor.view.dom
+      const handleClick = (e: MouseEvent) => {
+        const target = e.target as HTMLElement
+        if (target.tagName === 'IMG' && editorWrapRef.current) {
+          const imgRect = target.getBoundingClientRect()
+          const wrapRect = editorWrapRef.current.getBoundingClientRect()
+          setImagePopup({
+            top: imgRect.top - wrapRect.top - 44,
+            left: imgRect.left - wrapRect.left + imgRect.width / 2,
+          })
+        } else {
+          setImagePopup(null)
+        }
+      }
+      dom.addEventListener('click', handleClick)
+      return () => dom.removeEventListener('click', handleClick)
+    }, [editor])
+
+    useEffect(() => {
       if (editor && content !== editor.getHTML()) {
         editor.commands.setContent(content)
       }
@@ -129,6 +151,7 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
 
     return (
       <>
+        <div ref={editorWrapRef} className="relative">
         <div className="border border-gray-200 rounded-xl overflow-hidden tiptap-editor">
           <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-gray-100 bg-gray-50">
             <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="굵게">
@@ -166,6 +189,45 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
           </div>
           <EditorContent editor={editor} />
         </div>
+        </div>
+
+        {imagePopup && (
+          <div
+            className="absolute z-20 flex items-center gap-1 bg-gray-900 text-white rounded-lg px-2 py-1.5 shadow-lg text-xs -translate-x-1/2"
+            style={{ top: imagePopup.top, left: imagePopup.left }}
+          >
+            <span className="text-gray-400 mr-1">크기</span>
+            {[['100%', '원본'], ['75%', '대'], ['50%', '중'], ['25%', '소']].map(([w, label]) => (
+              <button
+                key={w}
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().updateAttributes('image', { width: w }).run()
+                  setImagePopup(null)
+                }}
+                className={`px-2 py-0.5 rounded transition-colors ${
+                  editor.getAttributes('image').width === w
+                    ? 'bg-white text-gray-900 font-semibold'
+                    : 'hover:bg-gray-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+            <div className="w-px h-4 bg-gray-600 mx-0.5" />
+            <button
+              type="button"
+              onClick={() => {
+                editor.chain().focus().deleteSelection().run()
+                setImagePopup(null)
+              }}
+              className="hover:bg-red-600 px-1.5 py-0.5 rounded transition-colors"
+              title="이미지 삭제"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {showImageModal && (
           <ImageModal
