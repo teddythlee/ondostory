@@ -77,52 +77,23 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
           const rawFile = imageItem.getAsFile()
           if (!rawFile) return false
 
-          const { state, dispatch } = view
-          const { tr, selection } = state
-          const placeholderNode = state.schema.text('(이미지 업로드 중...)')
-          dispatch(tr.insert(selection.from, placeholderNode))
-          const insertPos = selection.from
+          const insertAt = view.state.selection.from
 
-          resizeImage(rawFile).then((blob) => {
-            const file = new File([blob], 'paste.jpg', { type: 'image/jpeg' })
-            const formData = new FormData()
-            formData.append('file', file)
-            return fetch('/api/upload', { method: 'POST', body: formData })
-          })
+          resizeImage(rawFile)
+            .then((blob) => {
+              const file = new File([blob], 'paste.jpg', { type: 'image/jpeg' })
+              const formData = new FormData()
+              formData.append('file', file)
+              return fetch('/api/upload', { method: 'POST', body: formData })
+            })
             .then(async (res) => {
               const data = (await res.json()) as { url?: string; error?: string }
               if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
               if (!data.url) throw new Error('url missing')
-
-              const placeholderText = '(이미지 업로드 중...)'
-              const currentState = view.state
-              let absolutePos = -1
-              currentState.doc.descendants((node, pos) => {
-                if (node.isText && node.text?.includes(placeholderText)) {
-                  absolutePos = pos + node.text.indexOf(placeholderText)
-                  return false
-                }
-              })
-              if (absolutePos !== -1) {
-                view.dispatch(currentState.tr.delete(absolutePos, absolutePos + placeholderText.length))
-              }
-
-              const imgNode = view.state.schema.nodes.image.create({ src: data.url!, alt: '' })
-              view.dispatch(view.state.tr.insert(insertPos, imgNode))
+              const imgNode = view.state.schema.nodes.image.create({ src: data.url, alt: '' })
+              view.dispatch(view.state.tr.insert(insertAt, imgNode))
             })
             .catch((e) => {
-              const placeholderText = '(이미지 업로드 중...)'
-              const currentState = view.state
-              let absolutePos = -1
-              currentState.doc.descendants((node, pos) => {
-                if (node.isText && node.text?.includes(placeholderText)) {
-                  absolutePos = pos + node.text!.indexOf(placeholderText)
-                  return false
-                }
-              })
-              if (absolutePos !== -1) {
-                view.dispatch(currentState.tr.delete(absolutePos, absolutePos + placeholderText.length))
-              }
               alert(`이미지 업로드 실패: ${e instanceof Error ? e.message : String(e)}`)
             })
 
