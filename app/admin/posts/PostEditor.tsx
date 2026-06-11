@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { Post } from '@/types'
+import type { RichEditorHandle } from '@/components/editor/RichEditor'
+import ImageSearchPanel from '@/components/editor/ImageSearchPanel'
 
 const RichEditor = dynamic(() => import('@/components/editor/RichEditor'), { ssr: false })
 
@@ -24,6 +26,7 @@ export default function PostEditor({ post }: Props) {
   const [message, setMessage] = useState('')
   const [slugEdited, setSlugEdited] = useState(!!post)
   const [translating, setTranslating] = useState(false)
+  const editorRef = useRef<RichEditorHandle>(null)
 
   useEffect(() => {
     if (slugEdited || !title) return
@@ -163,11 +166,11 @@ export default function PostEditor({ post }: Props) {
             placeholder="요약 (검색결과에 표시됩니다)"
             className="w-full text-base border-0 outline-none bg-transparent placeholder-gray-300 text-gray-600 py-1"
           />
-          <RichEditor content={content} onChange={setContent} />
+          <RichEditor ref={editorRef} content={content} onChange={setContent} />
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-4">
+        {/* Sidebar - sticky, follows scroll */}
+        <div className="space-y-4 sticky top-4 self-start max-h-[calc(100vh-5rem)] overflow-y-auto pb-4">
           <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
             <h3 className="font-semibold text-sm text-gray-700">발행 설정</h3>
             <label className="flex items-center gap-2 cursor-pointer">
@@ -243,6 +246,8 @@ export default function PostEditor({ post }: Props) {
               💡 발행 시 Google Indexing API에 자동으로 크롤링 요청이 전송됩니다.
             </div>
           </div>
+
+          <ImageSearchPanel onInsert={(url, alt) => editorRef.current?.insertImage(url, alt)} />
         </div>
       </div>
     </div>
