@@ -5,7 +5,6 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { Metadata } from 'next'
 import RelatedPosts from '@/components/blog/RelatedPosts'
-import FooterNav from '@/components/blog/FooterNav'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,7 +42,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-
 export default async function PostPage({ params }: Props) {
   const { slug } = await params
   const post = await getPostBySlug(slug)
@@ -63,95 +61,58 @@ export default async function PostPage({ params }: Props) {
     url,
     datePublished: post.published_at,
     dateModified: post.updated_at,
-    author: {
-      '@type': 'Person',
-      name: 'ondostory',
-      url: siteUrl,
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'ondostory',
-      url: siteUrl,
-    },
+    author: { '@type': 'Person', name: 'ondostory', url: siteUrl },
+    publisher: { '@type': 'Organization', name: 'ondostory', url: siteUrl },
     keywords: post.tags.join(', '),
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="max-w-3xl mx-auto px-4 py-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold tracking-tight text-gray-900">ondostory</Link>
-          <nav className="flex items-center gap-6 text-sm text-gray-600">
-            <Link href="/blog" className="hover:text-gray-900 transition-colors">블로그</Link>
-          </nav>
+      <div className="mb-8">
+        <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
+          <Link href="/blog" className="hover:text-gray-600">블로그</Link>
+          <span>·</span>
+          {post.tags.map((tag) => (
+            <span key={tag} className="bg-gray-100 px-2 py-0.5 rounded-full">{tag}</span>
+          ))}
         </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 py-12">
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
-            <Link href="/blog" className="hover:text-gray-600">블로그</Link>
-            <span>·</span>
-            {post.tags.map((tag) => (
-              <span key={tag} className="bg-gray-100 px-2 py-0.5 rounded-full">{tag}</span>
-            ))}
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
-            {post.title}
-          </h1>
-          <p className="text-lg text-gray-500 leading-relaxed mb-6">{post.excerpt}</p>
-          {post.published_at && (
-            <time className="text-sm text-gray-400">
-              {format(new Date(post.published_at), 'yyyy년 M월 d일 (EEEE)', { locale: ko })}
-            </time>
-          )}
-        </div>
-
-        {post.cover_image && (
-          <img
-            src={post.cover_image}
-            alt={post.title}
-            className="w-full rounded-2xl mb-10 max-h-96 object-cover"
-          />
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
+          {post.title}
+        </h1>
+        <p className="text-lg text-gray-500 leading-relaxed mb-4">{post.excerpt}</p>
+        {post.published_at && (
+          <time className="text-sm text-gray-400">
+            {format(new Date(post.published_at), 'yyyy년 M월 d일 (EEEE)', { locale: ko })}
+          </time>
         )}
+      </div>
 
-        <article
-          className="prose text-gray-800"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+      {post.cover_image && (
+        <img
+          src={post.cover_image}
+          alt={post.title}
+          className="w-full rounded-2xl mb-10 max-h-96 object-cover"
         />
+      )}
 
-        <RelatedPosts current={post} all={allPosts} />
+      <article
+        className="prose text-gray-800"
+        dangerouslySetInnerHTML={{ __html: post.content }}
+      />
 
-        <div className="mt-10 pt-8 border-t border-gray-100">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            ← 모든 글 보기
-          </Link>
-        </div>
-      </main>
+      <RelatedPosts current={post} all={allPosts} />
 
-      <footer className="border-t border-gray-100 mt-24">
-        <div className="py-6">
-          <FooterNav />
-          <div className="max-w-5xl mx-auto px-4 pb-4 text-center text-sm text-gray-400 space-y-1">
-            <p>© {new Date().getFullYear()} ondostory. All rights reserved.</p>
-            <p>
-              Some photos provided by{' '}
-              <a href="https://www.pexels.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
-                Pexels
-              </a>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <div className="mt-10 pt-8 border-t border-gray-100">
+        <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
+          ← 모든 글 보기
+        </Link>
+      </div>
     </div>
   )
 }
