@@ -1,11 +1,14 @@
 import { supabase, supabaseAdmin } from './supabase'
 import type { Post, CreatePostInput } from '@/types'
 
+const PAGE_SLUGS = ['about', 'contact', 'privacy-policy', 'terms', 'disclaimer']
+
 export async function getPublishedPosts(): Promise<Post[]> {
   const { data, error } = await supabase
     .from('posts')
     .select('*')
     .eq('published', true)
+    .not('slug', 'in', `(${PAGE_SLUGS.join(',')})`)
     .order('published_at', { ascending: false })
 
   if (error) throw error
@@ -28,6 +31,7 @@ export async function getAllPostsAdmin(): Promise<Post[]> {
   const { data, error } = await supabaseAdmin
     .from('posts')
     .select('*')
+    .not('slug', 'in', `(${PAGE_SLUGS.join(',')})`)
     .order('created_at', { ascending: false })
 
   if (error) throw error
