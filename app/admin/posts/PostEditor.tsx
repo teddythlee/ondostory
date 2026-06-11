@@ -186,13 +186,24 @@ export default function PostEditor({ post }: Props) {
               <label className="block text-xs text-gray-500 mb-1">
                 URL 슬러그 {translating && <span className="text-blue-400">번역 중...</span>}
               </label>
-              <input
-                type="text"
-                value={slug}
-                onChange={(e) => { setSlug(e.target.value); setSlugEdited(true) }}
-                disabled={translating}
-                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 font-mono disabled:opacity-50"
-              />
+              <div className="flex gap-1">
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => { setSlug(e.target.value); setSlugEdited(true) }}
+                  disabled={translating}
+                  className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 font-mono disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setSlugEdited(false); generateSlugFromTitle(title) }}
+                  disabled={translating || !title}
+                  title="제목으로 슬러그 재생성"
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  ↺
+                </button>
+              </div>
             </div>
           </div>
 
