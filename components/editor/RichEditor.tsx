@@ -119,7 +119,7 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
               if (absolutePos !== -1) {
                 view.dispatch(currentState.tr.delete(absolutePos, absolutePos + placeholderText.length))
               }
-              alert('이미지 업로드 실패')
+              alert('이미지 업로드 실패. Vercel 함수 로그를 확인하세요.')
             })
 
           return true

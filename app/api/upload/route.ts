@@ -11,7 +11,12 @@ export async function POST(req: NextRequest) {
   const file = formData.get('file') as File | null
   if (!file) return NextResponse.json({ error: '파일이 없습니다.' }, { status: 400 })
 
-  const ext = file.name.split('.').pop()
+  const MIME_EXT: Record<string, string> = {
+    'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif',
+    'image/webp': 'webp', 'image/avif': 'avif', 'image/svg+xml': 'svg',
+  }
+  const extFromName = file.name.includes('.') ? file.name.split('.').pop() : undefined
+  const ext = extFromName || MIME_EXT[file.type] || 'jpg'
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
   const { error } = await supabaseAdmin.storage
