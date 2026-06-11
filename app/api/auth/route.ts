@@ -7,8 +7,22 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
-  if (error || !data.session) {
-    return NextResponse.json({ error: '이메일 또는 비밀번호가 잘못되었습니다.' }, { status: 401 })
+  if (error) {
+    const code = error.code || error.message
+    if (code === 'invalid_credentials' || code?.includes('Invalid login')) {
+      return NextResponse.json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.', code: 'invalid_credentials' }, { status: 401 })
+    }
+    if (code === 'email_not_confirmed') {
+      return NextResponse.json({ error: '이메일 인증이 완료되지 않았습니다.', code: 'email_not_confirmed' }, { status: 401 })
+    }
+    if (code === 'user_not_found') {
+      return NextResponse.json({ error: '등록되지 않은 이메일입니다.', code: 'user_not_found' }, { status: 401 })
+    }
+    return NextResponse.json({ error: `서버 오류: ${error.message}`, code: 'server_error' }, { status: 500 })
+  }
+
+  if (!data.session) {
+    return NextResponse.json({ error: '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.', code: 'server_error' }, { status: 500 })
   }
 
   if (data.user.user_metadata?.role !== 'admin') {
