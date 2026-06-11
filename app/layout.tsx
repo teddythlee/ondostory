@@ -9,6 +9,10 @@ export const metadata: Metadata = {
     default: 'ondostory - 온도이야기',
     template: '%s | ondostory',
   },
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
   description: '온도이야기 - 일상의 온도를 담은 블로그',
   keywords: ['블로그', 'ondostory', '온도이야기'],
   authors: [{ name: 'ondostory' }],

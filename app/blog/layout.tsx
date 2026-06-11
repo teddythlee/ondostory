@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import FooterNav from '@/components/blog/FooterNav'
 
 export default function BlogLayout({ children }: { children: React.ReactNode }) {
@@ -7,8 +8,11 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
       <header className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-10">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/blog" className="text-xl font-bold tracking-tight text-gray-900">
-              ondostory
+            <Link href="/blog" className="flex items-center gap-2">
+              <div className="bg-gray-900 rounded-lg p-1">
+                <Image src="/logo.png" alt="ondostory" width={28} height={28} className="rounded-md" />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-gray-900">ondostory</span>
             </Link>
             <div className="hidden sm:block w-px h-8 bg-gray-200" />
             <p className="hidden sm:block text-[10px] leading-[1.6] text-gray-300 hover:text-gray-500 transition-colors cursor-default">
