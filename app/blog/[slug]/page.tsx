@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { Metadata } from 'next'
 import RelatedPosts from '@/components/blog/RelatedPosts'
+import FooterNav from '@/components/blog/FooterNav'
 
 export const dynamic = 'force-dynamic'
 
@@ -138,14 +139,17 @@ export default async function PostPage({ params }: Props) {
       </main>
 
       <footer className="border-t border-gray-100 mt-24">
-        <div className="max-w-5xl mx-auto px-4 py-8 text-center text-sm text-gray-400 space-y-1">
-          <p>© {new Date().getFullYear()} ondostory. All rights reserved.</p>
-          <p>
-            Some photos provided by{' '}
-            <a href="https://www.pexels.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
-              Pexels
-            </a>
-          </p>
+        <div className="py-6">
+          <FooterNav />
+          <div className="max-w-5xl mx-auto px-4 pb-4 text-center text-sm text-gray-400 space-y-1">
+            <p>© {new Date().getFullYear()} ondostory. All rights reserved.</p>
+            <p>
+              Some photos provided by{' '}
+              <a href="https://www.pexels.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+                Pexels
+              </a>
+            </p>
+          </div>
         </div>
       </footer>
     </div>
