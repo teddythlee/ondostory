@@ -84,8 +84,7 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
           const insertPos = selection.from
 
           resizeImage(rawFile).then((blob) => {
-            const ext = rawFile.type === 'image/png' ? 'png' : 'jpg'
-            const file = new File([blob], `paste.${ext}`, { type: blob.type })
+            const file = new File([blob], 'paste.jpg', { type: 'image/jpeg' })
             const formData = new FormData()
             formData.append('file', file)
             return fetch('/api/upload', { method: 'POST', body: formData })
