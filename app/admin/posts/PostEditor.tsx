@@ -34,6 +34,12 @@ export default function PostEditor({ post }: Props) {
     return () => clearTimeout(timer)
   }, [title, slugEdited])
 
+  useEffect(() => {
+    if (coverImage) return
+    const match = content.match(/<img[^>]+src=["']([^"']+)["']/)
+    if (match) setCoverImage(match[1])
+  }, [content])
+
   function toSlug(text: string) {
     return text
       .toLowerCase()
