@@ -10,6 +10,7 @@ import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react'
 import ImageModal, { type ImageSize } from './ImageModal'
+import { resizeImage } from '@/lib/resizeImage'
 
 const SIZE_MAP: Record<ImageSize, string> = {
   small: '25%',
@@ -73,8 +74,8 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
           if (!imageItem) return false
 
           event.preventDefault()
-          const file = imageItem.getAsFile()
-          if (!file) return false
+          const rawFile = imageItem.getAsFile()
+          if (!rawFile) return false
 
           const { state, dispatch } = view
           const { tr, selection } = state
@@ -82,10 +83,13 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
           dispatch(tr.insert(selection.from, placeholderNode))
           const insertPos = selection.from
 
-          const formData = new FormData()
-          formData.append('file', file)
-
-          fetch('/api/upload', { method: 'POST', body: formData })
+          resizeImage(rawFile).then((blob) => {
+            const ext = rawFile.type === 'image/png' ? 'png' : 'jpg'
+            const file = new File([blob], `paste.${ext}`, { type: blob.type })
+            const formData = new FormData()
+            formData.append('file', file)
+            return fetch('/api/upload', { method: 'POST', body: formData })
+          })
             .then(async (res) => {
               if (!res.ok) throw new Error('upload failed')
               const data = (await res.json()) as { url: string }
