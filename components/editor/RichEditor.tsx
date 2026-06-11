@@ -91,8 +91,9 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
             return fetch('/api/upload', { method: 'POST', body: formData })
           })
             .then(async (res) => {
-              if (!res.ok) throw new Error('upload failed')
-              const data = (await res.json()) as { url: string }
+              const data = (await res.json()) as { url?: string; error?: string }
+              if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+              if (!data.url) throw new Error('url missing')
 
               const placeholderText = '(이미지 업로드 중...)'
               const currentState = view.state
@@ -107,10 +108,10 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
                 view.dispatch(currentState.tr.delete(absolutePos, absolutePos + placeholderText.length))
               }
 
-              const imgNode = view.state.schema.nodes.image.create({ src: data.url, alt: '' })
+              const imgNode = view.state.schema.nodes.image.create({ src: data.url!, alt: '' })
               view.dispatch(view.state.tr.insert(insertPos, imgNode))
             })
-            .catch(() => {
+            .catch((e) => {
               const placeholderText = '(이미지 업로드 중...)'
               const currentState = view.state
               let absolutePos = -1
@@ -123,7 +124,7 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
               if (absolutePos !== -1) {
                 view.dispatch(currentState.tr.delete(absolutePos, absolutePos + placeholderText.length))
               }
-              alert('이미지 업로드 실패. Vercel 함수 로그를 확인하세요.')
+              alert(`이미지 업로드 실패: ${e instanceof Error ? e.message : String(e)}`)
             })
 
           return true
