@@ -229,16 +229,12 @@ export default function PostEditor({ post }: Props) {
 
           <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
             <h3 className="font-semibold text-sm text-gray-700">이미지 & 태그</h3>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">커버 이미지 URL</label>
-              <input
-                type="text"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                placeholder="https://..."
-                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400"
-              />
-            </div>
+            {coverImage && (
+              <div className="flex items-center gap-2">
+                <img src={coverImage} alt="cover" className="w-10 h-10 rounded object-cover border border-gray-200" />
+                <span className="text-[11px] text-gray-400">커버 이미지 자동 설정됨</span>
+              </div>
+            )}
             <div>
               <label className="block text-xs text-gray-500 mb-1">태그 (쉼표로 구분)</label>
               <input

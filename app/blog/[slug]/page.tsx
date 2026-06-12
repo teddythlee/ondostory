@@ -93,14 +93,6 @@ export default async function PostPage({ params }: Props) {
         )}
       </div>
 
-      {post.cover_image && (
-        <img
-          src={post.cover_image}
-          alt={post.title}
-          className="w-full rounded-2xl mb-10 max-h-96 object-cover"
-        />
-      )}
-
       <article
         className="prose text-gray-800"
         dangerouslySetInnerHTML={{ __html: post.content }}
