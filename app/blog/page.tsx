@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { getPublishedPosts } from '@/lib/posts'
 import PostList from '@/components/blog/PostList'
 import type { Metadata } from 'next'
@@ -18,7 +19,9 @@ export default async function BlogPage() {
       {posts.length === 0 ? (
         <div className="text-center py-24 text-gray-400">아직 작성된 글이 없습니다.</div>
       ) : (
-        <PostList posts={posts} />
+        <Suspense>
+          <PostList posts={posts} />
+        </Suspense>
       )}
     </div>
   )

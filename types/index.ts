@@ -12,6 +12,7 @@ export interface Post {
   tags: string[]
   meta_title: string | null
   meta_description: string | null
+  category: string | null
 }
 
 export interface CreatePostInput {
@@ -24,4 +25,5 @@ export interface CreatePostInput {
   tags: string[]
   meta_title?: string
   meta_description?: string
+  category?: string | null
 }

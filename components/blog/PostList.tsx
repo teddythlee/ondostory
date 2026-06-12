@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -9,45 +10,131 @@ import type { Post } from '@/types'
 type View = 'grid' | 'list'
 
 export default function PostList({ posts }: { posts: Post[] }) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [view, setView] = useState<View>('grid')
-  const [activeTag, setActiveTag] = useState<string | null>(null)
+  const [search, setSearch] = useState(searchParams.get('q') || '')
+
+  const activeTag = searchParams.get('tag') || null
+  const activeCategory = searchParams.get('category') || null
 
   const allTags = useMemo(() => {
     const set = new Set<string>()
     posts.forEach(p => p.tags.forEach(t => set.add(t)))
-    return Array.from(set)
+    return Array.from(set).sort()
   }, [posts])
 
-  const filtered = useMemo(() =>
-    activeTag ? posts.filter(p => p.tags.includes(activeTag)) : posts,
-    [posts, activeTag]
-  )
+  const allCategories = useMemo(() => {
+    const set = new Set<string>()
+    posts.forEach(p => { if (p.category) set.add(p.category) })
+    return Array.from(set).sort()
+  }, [posts])
+
+  const filtered = useMemo(() => {
+    let result = posts
+    if (activeCategory) result = result.filter(p => p.category === activeCategory)
+    if (activeTag) result = result.filter(p => p.tags.includes(activeTag))
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      result = result.filter(p =>
+        p.title.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q)
+      )
+    }
+    return result
+  }, [posts, activeTag, activeCategory, search])
+
+  function setParam(key: string, value: string | null) {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value) params.set(key, value)
+    else params.delete(key)
+    router.push(`/blog?${params.toString()}`, { scroll: false })
+  }
+
+  function toggleTag(tag: string) {
+    setParam('tag', activeTag === tag ? null : tag)
+  }
+
+  function toggleCategory(cat: string) {
+    setParam('category', activeCategory === cat ? null : cat)
+  }
+
+  // sync search to URL with debounce
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (search.trim()) params.set('q', search.trim())
+      else params.delete('q')
+      router.push(`/blog?${params.toString()}`, { scroll: false })
+    }, 300)
+    return () => clearTimeout(t)
+  }, [search])
 
   return (
     <div>
-      {/* Controls */}
-      <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
-        {/* Tag filter */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setActiveTag(null)}
-            className={`text-sm px-3 py-1 rounded-full transition-colors ${!activeTag ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-          >
-            전체
+      {/* Search */}
+      <div className="relative mb-6">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="글 제목 또는 내용 검색..."
+          className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 bg-gray-50"
+        />
+        {search && (
+          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            ✕
           </button>
-          {allTags.map(tag => (
-            <button
-              key={tag}
-              onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-              className={`text-sm px-3 py-1 rounded-full transition-colors ${activeTag === tag ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-            >
-              {tag}
-            </button>
-          ))}
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
+        <div className="flex flex-col gap-2 flex-1">
+          {/* Category filter */}
+          {allCategories.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-400">카테고리</span>
+              <button
+                onClick={() => setParam('category', null)}
+                className={`text-xs px-3 py-1 rounded-full transition-colors ${!activeCategory ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                전체
+              </button>
+              {allCategories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => toggleCategory(cat)}
+                  className={`text-xs px-3 py-1 rounded-full transition-colors ${activeCategory === cat ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Tag filter */}
+          {allTags.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-400">태그</span>
+              {allTags.map(tag => (
+                <button
+                  key={tag}
+                  onClick={() => toggleTag(tag)}
+                  className={`text-xs px-3 py-1 rounded-full transition-colors ${activeTag === tag ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* View toggle */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 flex-shrink-0">
           <button
             onClick={() => setView('grid')}
             title="그리드 보기"
@@ -75,7 +162,7 @@ export default function PostList({ posts }: { posts: Post[] }) {
       <p className="text-sm text-gray-400 mb-6">{filtered.length}개의 글</p>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-24 text-gray-400">해당 태그의 글이 없습니다.</div>
+        <div className="text-center py-24 text-gray-400">검색 결과가 없습니다.</div>
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {filtered.map(post => (
@@ -86,6 +173,9 @@ export default function PostList({ posts }: { posts: Post[] }) {
                 <div className="w-full h-44 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center text-3xl text-gray-300">
                   📝
                 </div>
+              )}
+              {post.category && (
+                <span className="text-[11px] text-blue-500 font-medium mb-1">{post.category}</span>
               )}
               <div className="flex items-center gap-1.5 flex-wrap mb-2">
                 {post.tags.slice(0, 2).map(tag => (
@@ -117,6 +207,9 @@ export default function PostList({ posts }: { posts: Post[] }) {
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                  {post.category && (
+                    <span className="text-[11px] text-blue-500 font-medium">{post.category}</span>
+                  )}
                   {post.tags.slice(0, 3).map(tag => (
                     <span key={tag} className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-500">{tag}</span>
                   ))}

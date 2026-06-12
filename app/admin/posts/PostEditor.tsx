@@ -19,6 +19,7 @@ export default function PostEditor({ post }: Props) {
   const [content, setContent] = useState(post?.content || '')
   const [coverImage, setCoverImage] = useState(post?.cover_image || '')
   const [tags, setTags] = useState(post?.tags.join(', ') || '')
+  const [category, setCategory] = useState(post?.category || '')
   const [metaTitle, setMetaTitle] = useState(post?.meta_title || '')
   const [metaDescription, setMetaDescription] = useState(post?.meta_description || '')
   const [published, setPublished] = useState(post?.published || false)
@@ -83,6 +84,7 @@ export default function PostEditor({ post }: Props) {
       content,
       cover_image: coverImage || null,
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+      category: category.trim() || null,
       meta_title: metaTitle || null,
       meta_description: metaDescription || null,
       published: shouldPublish,
@@ -235,6 +237,16 @@ export default function PostEditor({ post }: Props) {
                 <span className="text-[11px] text-gray-400">커버 이미지 자동 설정됨</span>
               </div>
             )}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">카테고리</label>
+              <input
+                type="text"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="일상 / 여행 / 음식 / 생각"
+                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400"
+              />
+            </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">태그 (쉼표로 구분)</label>
               <input
