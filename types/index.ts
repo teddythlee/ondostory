@@ -13,6 +13,7 @@ export interface Post {
   meta_title: string | null
   meta_description: string | null
   category: string | null
+  view_count: number
 }
 
 export interface CreatePostInput {

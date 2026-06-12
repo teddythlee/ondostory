@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { Metadata } from 'next'
 import RelatedPosts from '@/components/blog/RelatedPosts'
+import ViewCounter from '@/components/blog/ViewCounter'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,6 +70,7 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
+      <ViewCounter slug={post.slug} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -30,6 +30,12 @@ export default async function AdminPage() {
               가져오기
             </Link>
             <Link
+              href="/admin/media"
+              className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              미디어
+            </Link>
+            <Link
               href="/admin/posts/new"
               className="bg-gray-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
             >
@@ -71,10 +77,11 @@ export default async function AdminPage() {
             <table className="w-full table-fixed">
               <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-3 text-left w-[40%]">제목</th>
-                  <th className="px-4 py-3 text-left w-[20%]">태그</th>
-                  <th className="px-4 py-3 text-left w-[13%]">상태</th>
-                  <th className="px-4 py-3 text-left w-[12%]">날짜</th>
+                  <th className="px-6 py-3 text-left w-[38%]">제목</th>
+                  <th className="px-4 py-3 text-left w-[18%]">태그</th>
+                  <th className="px-4 py-3 text-left w-[11%]">상태</th>
+                  <th className="px-4 py-3 text-right w-[8%]">조회수</th>
+                  <th className="px-4 py-3 text-left w-[10%]">날짜</th>
                   <th className="px-4 py-3 text-right w-[15%]">작업</th>
                 </tr>
               </thead>
@@ -97,6 +104,9 @@ export default async function AdminPage() {
                       <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${post.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                         {post.published ? '발행됨' : '임시저장'}
                       </span>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-500 text-right whitespace-nowrap">
+                      {post.view_count ?? 0}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
                       {format(new Date(post.created_at), 'yy.MM.dd', { locale: ko })}
