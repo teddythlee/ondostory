@@ -219,10 +219,10 @@ export default function PostList({ posts }: { posts: Post[] }) {
               ) : (
                 <div className="w-full h-44 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center text-3xl text-gray-300">📝</div>
               )}
-              {post.category && (
-                <span className="text-[11px] text-blue-500 font-medium mb-1">{post.category}</span>
-              )}
               <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                {post.category && (
+                  <span className="text-[11px] text-blue-500 font-medium">{post.category}</span>
+                )}
                 {post.tags.slice(0, 2).map(tag => (
                   <span key={tag} className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-500">{tag}</span>
                 ))}
