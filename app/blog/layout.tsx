@@ -14,10 +14,8 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <div className="hidden sm:block w-px h-8 bg-gray-200" />
             <p className="hidden sm:block text-[10px] leading-[1.6] text-gray-300 hover:text-gray-500 transition-colors cursor-default">
-              삶에는 하나의 온도만 있는 것이 아니다.<br />
-              가장 차가운 순간도 있고,<br />
-              가장 뜨거운 순간도 있다.<br />
-              그 사이의 수많은 온도를 발견한다.
+              삶의 다양한 온도를 소개하는 라이프스타일 브랜드<br />
+              새로운 온도를 발견
             </p>
           </div>
           <nav className="flex items-center gap-5 text-sm text-gray-500">
