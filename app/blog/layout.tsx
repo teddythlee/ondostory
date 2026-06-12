@@ -17,7 +17,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
               삶에는 하나의 온도만 있는 것이 아니다.<br />
               가장 차가운 순간도 있고,<br />
               가장 뜨거운 순간도 있다.<br />
-              그리고 그 사이의 수많은 온도들이 우리의 이야기를 만든다.
+              그 사이의 수많은 온도를 발견한다.
             </p>
           </div>
           <nav className="flex items-center gap-5 text-sm text-gray-500">
