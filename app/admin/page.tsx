@@ -116,8 +116,13 @@ export default async function AdminPage() {
                         편집
                       </Link>
                       {post.published && (
-                        <Link href={`/blog/${post.slug}`} target="_blank" className="text-sm text-gray-400 hover:underline">
+                        <Link href={`/blog/${post.slug}`} target="_blank" className="text-sm text-gray-400 hover:underline mr-3">
                           보기
+                        </Link>
+                      )}
+                      {post.published && (
+                        <Link href={`https://www.google.com/search?q=site:www.ondostory.com/blog/${post.slug}`} target="_blank" className="text-sm text-gray-400 hover:underline">
+                          G
                         </Link>
                       )}
                     </td>
