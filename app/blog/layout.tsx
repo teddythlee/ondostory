@@ -14,8 +14,8 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <div className="hidden sm:block w-px h-8 bg-gray-200" />
             <p className="hidden sm:block text-[10px] leading-[1.6] text-gray-300 hover:text-gray-500 transition-colors cursor-default">
-              삶의 다양한 온도를 소개하는 라이프스타일 브랜드<br />
-              새로운 온도를 발견
+              삶의 온도는 하나가 아니다.<br />
+              새로운 온도를 발견하는 라이프스타일 큐레이션.
             </p>
           </div>
           <nav className="flex items-center gap-5 text-sm text-gray-500">
