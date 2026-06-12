@@ -122,7 +122,7 @@ export default async function AdminPage() {
                       )}
                       {post.published && (
                         <Link href={`https://www.google.com/search?q=site:www.ondostory.com/blog/${post.slug}`} target="_blank" className="text-sm text-gray-400 hover:underline">
-                          G
+                          색인확인
                         </Link>
                       )}
                     </td>
