@@ -36,9 +36,9 @@ export default function PostEditor({ post }: Props) {
   }, [title, slugEdited])
 
   useEffect(() => {
-    if (coverImage) return
     const match = content.match(/<img[^>]+src=["']([^"']+)["']/)
     if (match) setCoverImage(match[1])
+    else setCoverImage('')
   }, [content])
 
   function toSlug(text: string) {
