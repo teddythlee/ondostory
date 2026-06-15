@@ -5,9 +5,12 @@ import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ondostory.com'
+
 export const metadata: Metadata = {
   title: '블로그',
   description: 'ondostory 블로그 - 모든 글',
+  alternates: { canonical: `${siteUrl}/blog` },
 }
 
 export default async function BlogPage() {
