@@ -7,7 +7,13 @@ import type { Metadata } from 'next'
 import RelatedPosts from '@/components/blog/RelatedPosts'
 import ViewCounter from '@/components/blog/ViewCounter'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
+export const dynamicParams = true
+
+export async function generateStaticParams() {
+  const posts = await getPublishedPosts().catch(() => [])
+  return posts.map((post) => ({ slug: post.slug }))
+}
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -53,6 +59,16 @@ export default async function PostPage({ params }: Props) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
   const url = `${siteUrl}/blog/${post.slug}`
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: '홈', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: '블로그', item: `${siteUrl}/blog` },
+      { '@type': 'ListItem', position: 3, name: post.title, item: url },
+    ],
+  }
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -71,6 +87,10 @@ export default async function PostPage({ params }: Props) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <ViewCounter slug={post.slug} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

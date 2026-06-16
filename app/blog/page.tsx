@@ -3,7 +3,7 @@ import { getPublishedPosts } from '@/lib/posts'
 import PostList from '@/components/blog/PostList'
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ondostory.com'
 

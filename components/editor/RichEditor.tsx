@@ -46,11 +46,17 @@ export interface RichEditorHandle {
   insertImage: (url: string, alt?: string) => void
 }
 
-const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (html: string) => void }>(
-  function RichEditor({ content, onChange }, ref) {
+const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (html: string) => void; title?: string }>(
+  function RichEditor({ content, onChange, title = '' }, ref) {
     const [showImageModal, setShowImageModal] = useState(false)
   const [imagePopup, setImagePopup] = useState<{ top: number; left: number } | null>(null)
   const editorWrapRef = useRef<HTMLDivElement>(null)
+
+  function generateAlt(editorInstance: typeof editor) {
+    const base = title.trim() || 'ondostory'
+    const count = editorInstance?.getHTML().match(/<img /g)?.length ?? 0
+    return `${base} 이미지 ${count + 1}`
+  }
 
     const editor = useEditor({
       extensions: [
@@ -92,7 +98,7 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
               const data = (await res.json()) as { url?: string; error?: string }
               if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
               if (!data.url) throw new Error('url missing')
-              const imgNode = view.state.schema.nodes.image.create({ src: data.url, alt: '' })
+              const imgNode = view.state.schema.nodes.image.create({ src: data.url, alt: generateAlt(editor) })
               view.dispatch(view.state.tr.insert(insertAt, imgNode))
             })
             .catch((e) => {
@@ -105,8 +111,8 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
     })
 
     useImperativeHandle(ref, () => ({
-      insertImage(url: string, alt = '') {
-        editor?.chain().focus().setImage({ src: url, alt } as never).run()
+      insertImage(url: string, alt?: string) {
+        editor?.chain().focus().setImage({ src: url, alt: alt || generateAlt(editor) } as never).run()
       },
     }))
 
@@ -140,7 +146,7 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
 
     function handleImageInsert(src: string, size: ImageSize) {
       const width = SIZE_MAP[size]
-      editor?.chain().focus().setImage({ src, alt: '', width } as never).run()
+      editor?.chain().focus().setImage({ src, alt: generateAlt(editor), width } as never).run()
     }
 
     const setLink = () => {

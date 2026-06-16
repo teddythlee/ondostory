@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     icon: '/favicon.png',
     apple: '/favicon.png',
   },
-  description: '온도이야기 - 일상의 온도를 담은 블로그',
+  description: '삶의 온도는 하나가 아니다. 새로운 온도를 발견하는 라이프스타일 큐레이션.',
   keywords: ['블로그', 'ondostory', '온도이야기'],
   authors: [{ name: 'ondostory' }],
   creator: 'ondostory',
@@ -23,12 +23,12 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: 'ondostory',
     title: 'ondostory - 온도이야기',
-    description: '온도이야기 - 일상의 온도를 담은 블로그',
+    description: '삶의 온도는 하나가 아니다. 새로운 온도를 발견하는 라이프스타일 큐레이션.',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ondostory - 온도이야기',
-    description: '온도이야기 - 일상의 온도를 담은 블로그',
+    description: '삶의 온도는 하나가 아니다. 새로운 온도를 발견하는 라이프스타일 큐레이션.',
   },
   robots: {
     index: true,

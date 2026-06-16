@@ -188,7 +188,7 @@ export default function PostEditor({ post }: Props) {
               ↺ 자동
             </button>
           </div>
-          <RichEditor ref={editorRef} content={content} onChange={setContent} />
+          <RichEditor ref={editorRef} content={content} onChange={setContent} title={title} />
         </div>
 
         {/* Sidebar - sticky, follows scroll */}
