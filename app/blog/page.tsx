@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { getPublishedPosts } from '@/lib/posts'
 import PostList from '@/components/blog/PostList'
 import type { Metadata } from 'next'
@@ -13,7 +12,12 @@ export const metadata: Metadata = {
   alternates: { canonical: `${siteUrl}/blog` },
 }
 
-export default async function BlogPage() {
+interface Props {
+  searchParams: Promise<{ tag?: string; category?: string; q?: string }>
+}
+
+export default async function BlogPage({ searchParams }: Props) {
+  const { tag, category, q } = await searchParams
   const posts = await getPublishedPosts().catch(() => [])
 
   return (
@@ -24,9 +28,12 @@ export default async function BlogPage() {
           <div className="text-center py-24 text-gray-400">아직 작성된 글이 없습니다.</div>
         </>
       ) : (
-        <Suspense>
-          <PostList posts={posts} />
-        </Suspense>
+        <PostList
+          posts={posts}
+          initialTag={tag ?? null}
+          initialCategory={category ?? null}
+          initialQ={q ?? ''}
+        />
       )}
     </div>
   )

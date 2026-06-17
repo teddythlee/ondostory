@@ -42,12 +42,24 @@ export default function PostEditor({ post }: Props) {
   }, [content])
 
   function toSlug(text: string) {
+    const stopWords = new Set([
+      'a','an','the','i','is','it','in','of','to','and','but','for','or',
+      'with','at','by','on','be','was','were','are','this','that','have',
+      'has','had','not','my','your','we','they','he','she','just','so',
+      'do','does','did','if','up','out','no','its','as','from','into',
+      'than','then','about','after','what','when','which','who','how',
+      'all','would','could','should','will','can','may','might','must',
+      'get','got','been','our','their','there','here','now','also','only',
+      'even','still','very','too','more','some','one','two','new','good',
+    ])
     return text
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .trim()
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
+      .split(/\s+/)
+      .filter(w => w && !stopWords.has(w))
+      .slice(0, 5)
+      .join('-')
   }
 
   async function generateSlugFromTitle(text: string) {

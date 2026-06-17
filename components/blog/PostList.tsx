@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -9,18 +9,23 @@ import type { Post } from '@/types'
 
 type View = 'grid' | 'list'
 
-export default function PostList({ posts }: { posts: Post[] }) {
+interface Props {
+  posts: Post[]
+  initialTag?: string | null
+  initialCategory?: string | null
+  initialQ?: string
+}
+
+export default function PostList({ posts, initialTag = null, initialCategory = null, initialQ = '' }: Props) {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   const [view, setView] = useState<View>('grid')
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [search, setSearch] = useState(searchParams.get('q') || '')
+  const [searchOpen, setSearchOpen] = useState(!!initialQ)
+  const [filterOpen, setFilterOpen] = useState(!!(initialTag || initialCategory))
+  const [search, setSearch] = useState(initialQ)
+  const [activeTag, setActiveTag] = useState<string | null>(initialTag)
+  const [activeCategory, setActiveCategory] = useState<string | null>(initialCategory)
   const searchRef = useRef<HTMLInputElement>(null)
-
-  const activeTag = searchParams.get('tag') || null
-  const activeCategory = searchParams.get('category') || null
 
   const allTags = useMemo(() => {
     const set = new Set<string>()
@@ -47,26 +52,31 @@ export default function PostList({ posts }: { posts: Post[] }) {
     return result
   }, [posts, activeTag, activeCategory, search])
 
-  function setParam(key: string, value: string | null) {
-    const params = new URLSearchParams(searchParams.toString())
-    if (value) params.set(key, value)
-    else params.delete(key)
-    router.push(`/blog?${params.toString()}`, { scroll: false })
+  function buildUrl(tag: string | null, category: string | null, q: string) {
+    const params = new URLSearchParams()
+    if (tag) params.set('tag', tag)
+    if (category) params.set('category', category)
+    if (q.trim()) params.set('q', q.trim())
+    const qs = params.toString()
+    return `/blog${qs ? `?${qs}` : ''}`
   }
 
   function toggleTag(tag: string) {
-    setParam('tag', activeTag === tag ? null : tag)
+    const next = activeTag === tag ? null : tag
+    setActiveTag(next)
+    router.push(buildUrl(next, activeCategory, search), { scroll: false })
   }
 
   function toggleCategory(cat: string) {
-    setParam('category', activeCategory === cat ? null : cat)
+    const next = activeCategory === cat ? null : cat
+    setActiveCategory(next)
+    router.push(buildUrl(activeTag, next, search), { scroll: false })
   }
 
-  // open search when ?q= exists in URL
-  useEffect(() => {
-    if (searchParams.get('q')) setSearchOpen(true)
-    if (searchParams.get('tag') || searchParams.get('category')) setFilterOpen(true)
-  }, [])
+  function clearCategory() {
+    setActiveCategory(null)
+    router.push(buildUrl(activeTag, null, search), { scroll: false })
+  }
 
   // focus input when search opens
   useEffect(() => {
@@ -76,10 +86,7 @@ export default function PostList({ posts }: { posts: Post[] }) {
   // debounce search → URL
   useEffect(() => {
     const t = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString())
-      if (search.trim()) params.set('q', search.trim())
-      else params.delete('q')
-      router.push(`/blog?${params.toString()}`, { scroll: false })
+      router.push(buildUrl(activeTag, activeCategory, search), { scroll: false })
     }, 300)
     return () => clearTimeout(t)
   }, [search])
@@ -97,7 +104,10 @@ export default function PostList({ posts }: { posts: Post[] }) {
           <button
             onClick={() => {
               setSearchOpen(v => !v)
-              if (searchOpen) { setSearch(''); setParam('q', null) }
+              if (searchOpen) {
+                setSearch('')
+                router.push(buildUrl(activeTag, activeCategory, ''), { scroll: false })
+              }
             }}
             className={`p-2 rounded-lg transition-colors ${searchOpen ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`}
             title="검색"
@@ -178,7 +188,7 @@ export default function PostList({ posts }: { posts: Post[] }) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs text-gray-400 w-12 shrink-0">카테고리</span>
               <button
-                onClick={() => setParam('category', null)}
+                onClick={clearCategory}
                 className={`text-xs px-3 py-1 rounded-full transition-colors ${!activeCategory ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-100'}`}
               >전체</button>
               {allCategories.map(cat => (
