@@ -9,14 +9,16 @@ export const revalidate = 300
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ondostory.com'
 
-export const metadata: Metadata = {
-  title: 'ondostory 블로그 - 온도이야기',
-  description: '삶의 온도는 하나가 아니다. 새로운 온도를 발견하는 라이프스타일 큐레이션.',
-  alternates: { canonical: `${siteUrl}/blog` },
-}
-
 interface Props {
   searchParams: Promise<{ tag?: string; category?: string; q?: string; view?: string }>
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: 'ondostory 블로그 - 온도이야기',
+    description: '삶의 온도는 하나가 아니다. 새로운 온도를 발견하는 라이프스타일 큐레이션.',
+    alternates: { canonical: `${siteUrl}/blog` },
+  }
 }
 
 export default async function BlogPage({ searchParams }: Props) {
