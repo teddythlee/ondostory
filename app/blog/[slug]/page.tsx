@@ -113,8 +113,7 @@ export default async function PostPage({ params }: Props) {
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
           {post.title}
         </h1>
-        <p className="text-lg text-gray-500 leading-relaxed mb-4">{post.excerpt}</p>
-        {post.published_at && (
+{post.published_at && (
           <time className="text-sm text-gray-400">
             {format(new Date(post.published_at), 'yyyy년 M월 d일 (EEEE)', { locale: ko })}
           </time>
