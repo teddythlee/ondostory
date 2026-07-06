@@ -3,6 +3,9 @@ import { getPublishedPosts } from '@/lib/posts'
 
 export const dynamic = 'force-dynamic'
 
+// getPublishedPosts에서 제외되는 고정 페이지들. 루트 /는 /blog로 리다이렉트되므로 넣지 않는다.
+const STATIC_PAGE_SLUGS = ['about', 'contact', 'privacy-policy', 'terms', 'disclaimer']
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
   const posts = await getPublishedPosts().catch(() => [])
@@ -14,8 +17,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
+  const staticPageEntries: MetadataRoute.Sitemap = STATIC_PAGE_SLUGS.map((slug) => ({
+    url: `${siteUrl}/blog/${slug}`,
+    changeFrequency: 'yearly',
+    priority: 0.3,
+  }))
+
   return [
     { url: `${siteUrl}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
     ...postEntries,
+    ...staticPageEntries,
   ]
 }
