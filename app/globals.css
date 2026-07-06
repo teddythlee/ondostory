@@ -36,6 +36,8 @@ body {
 .prose a { color: #3b82f6; text-decoration: underline; }
 .prose img { max-width: 100%; border-radius: 0.5rem; margin: 1rem auto; }
 .prose hr { border: none; border-top: 1px solid #e5e7eb; margin: 2rem 0; }
+.prose .embed-wrapper { position: relative; width: 100%; margin: 1.5rem 0; aspect-ratio: 16 / 9; }
+.prose .embed-wrapper iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0.5rem; }
 
 .tiptap-editor .ProseMirror {
   outline: none;

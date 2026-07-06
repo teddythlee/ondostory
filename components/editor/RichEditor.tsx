@@ -10,6 +10,8 @@ import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import ImageModal, { type ImageSize } from './ImageModal'
+import EmbedModal from './EmbedModal'
+import Iframe from './IframeExtension'
 import { resizeImage } from '@/lib/resizeImage'
 
 const SIZE_MAP: Record<ImageSize, string> = {
@@ -49,6 +51,7 @@ export interface RichEditorHandle {
 const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (html: string) => void; title?: string }>(
   function RichEditor({ content, onChange, title = '' }, ref) {
     const [showImageModal, setShowImageModal] = useState(false)
+  const [showEmbedModal, setShowEmbedModal] = useState(false)
   const [imagePopup, setImagePopup] = useState<{ top: number; left: number } | null>(null)
   const editorWrapRef = useRef<HTMLDivElement>(null)
 
@@ -66,6 +69,7 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
         Highlight.configure({ multicolor: false }),
         Link.configure({ openOnClick: false }),
         Image.configure({ HTMLAttributes: { class: 'rounded-lg' } }),
+        Iframe,
         Placeholder.configure({ placeholder: '글을 작성하세요...' }),
       ],
       content,
@@ -188,6 +192,7 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
             <div className="w-px h-5 bg-gray-200 mx-1" />
             <ToolbarButton onClick={setLink} active={editor.isActive('link')} title="링크">🔗</ToolbarButton>
             <ToolbarButton onClick={() => setShowImageModal(true)} title="이미지">🖼️</ToolbarButton>
+            <ToolbarButton onClick={() => setShowEmbedModal(true)} title="임베드 (지도·유튜브)">🗺️</ToolbarButton>
             <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} title="구분선">—</ToolbarButton>
             <div className="w-px h-5 bg-gray-200 mx-1" />
             <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="되돌리기">↩</ToolbarButton>
@@ -239,6 +244,16 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
           <ImageModal
             onInsert={handleImageInsert}
             onClose={() => setShowImageModal(false)}
+          />
+        )}
+
+        {showEmbedModal && (
+          <EmbedModal
+            onInsert={(src, aspect) => {
+              editor.chain().focus().setIframe({ src, aspect }).run()
+              setShowEmbedModal(false)
+            }}
+            onClose={() => setShowEmbedModal(false)}
           />
         )}
       </>
