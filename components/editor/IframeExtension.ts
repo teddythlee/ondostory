@@ -66,6 +66,11 @@ const Iframe = Node.create<IframeOptions>({
         parseHTML: (el) => el.getAttribute('data-aspect') || '16 / 9',
         renderHTML: (attrs) => ({ 'data-aspect': attrs.aspect as string }),
       },
+      width: {
+        default: '100%',
+        parseHTML: (el) => el.getAttribute('data-width') || '100%',
+        renderHTML: (attrs) => ({ 'data-width': attrs.width as string }),
+      },
     }
   },
 
@@ -74,17 +79,22 @@ const Iframe = Node.create<IframeOptions>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const { 'data-aspect': aspect = '16 / 9', ...rest } = HTMLAttributes as Record<string, string>
+    const {
+      'data-aspect': aspect = '16 / 9',
+      'data-width': width = '100%',
+      ...rest
+    } = HTMLAttributes as Record<string, string>
     return [
       'div',
       {
         class: 'embed-wrapper',
-        style: `position:relative;width:100%;margin:1rem 0;aspect-ratio:${aspect};`,
+        style: `position:relative;width:${width};max-width:100%;margin:1rem auto;aspect-ratio:${aspect};`,
       },
       [
         'iframe',
         mergeAttributes(this.options.HTMLAttributes, rest, {
           'data-aspect': aspect,
+          'data-width': width,
           loading: 'lazy',
           referrerpolicy: 'strict-origin-when-cross-origin',
           allowfullscreen: 'true',

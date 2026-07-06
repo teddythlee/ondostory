@@ -52,7 +52,7 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
   function RichEditor({ content, onChange, title = '' }, ref) {
     const [showImageModal, setShowImageModal] = useState(false)
   const [showEmbedModal, setShowEmbedModal] = useState(false)
-  const [imagePopup, setImagePopup] = useState<{ top: number; left: number } | null>(null)
+  const [mediaPopup, setMediaPopup] = useState<{ top: number; left: number; kind: 'image' | 'iframe' } | null>(null)
   const editorWrapRef = useRef<HTMLDivElement>(null)
 
   function generateAlt(editorInstance: typeof editor) {
@@ -125,15 +125,19 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
       const dom = editor.view.dom
       const handleClick = (e: MouseEvent) => {
         const target = e.target as HTMLElement
-        if (target.tagName === 'IMG' && editorWrapRef.current) {
-          const imgRect = target.getBoundingClientRect()
+        const img = target.tagName === 'IMG' ? target : null
+        const embed = target.closest('.embed-wrapper') as HTMLElement | null
+        const el = img || embed
+        if (el && editorWrapRef.current) {
+          const rect = el.getBoundingClientRect()
           const wrapRect = editorWrapRef.current.getBoundingClientRect()
-          setImagePopup({
-            top: imgRect.top - wrapRect.top - 44,
-            left: imgRect.left - wrapRect.left + imgRect.width / 2,
+          setMediaPopup({
+            top: rect.top - wrapRect.top - 44,
+            left: rect.left - wrapRect.left + rect.width / 2,
+            kind: img ? 'image' : 'iframe',
           })
         } else {
-          setImagePopup(null)
+          setMediaPopup(null)
         }
       }
       dom.addEventListener('click', handleClick)
@@ -202,10 +206,10 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
         </div>
         </div>
 
-        {imagePopup && (
+        {mediaPopup && (
           <div
             className="absolute z-20 flex items-center gap-1 bg-gray-900 text-white rounded-lg px-2 py-1.5 shadow-lg text-xs -translate-x-1/2"
-            style={{ top: imagePopup.top, left: imagePopup.left }}
+            style={{ top: mediaPopup.top, left: mediaPopup.left }}
           >
             <span className="text-gray-400 mr-1">크기</span>
             {[['100%', '원본'], ['75%', '대'], ['50%', '중'], ['25%', '소']].map(([w, label]) => (
@@ -213,11 +217,11 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
                 key={w}
                 type="button"
                 onClick={() => {
-                  editor.chain().focus().updateAttributes('image', { width: w }).run()
-                  setImagePopup(null)
+                  editor.chain().focus().updateAttributes(mediaPopup.kind, { width: w }).run()
+                  setMediaPopup(null)
                 }}
                 className={`px-2 py-0.5 rounded transition-colors ${
-                  editor.getAttributes('image').width === w
+                  editor.getAttributes(mediaPopup.kind).width === w
                     ? 'bg-white text-gray-900 font-semibold'
                     : 'hover:bg-gray-700'
                 }`}
@@ -230,10 +234,10 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
               type="button"
               onClick={() => {
                 editor.chain().focus().deleteSelection().run()
-                setImagePopup(null)
+                setMediaPopup(null)
               }}
               className="hover:bg-red-600 px-1.5 py-0.5 rounded transition-colors"
-              title="이미지 삭제"
+              title={mediaPopup.kind === 'image' ? '이미지 삭제' : '임베드 삭제'}
             >
               ✕
             </button>
