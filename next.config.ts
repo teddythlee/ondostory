@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+
+// Cloudflare 바인딩(R2 등)을 `next dev`에서도 접근 가능하게 한다. 개발 전용 훅.
+initOpenNextCloudflareForDev();
 
 const nextConfig: NextConfig = {
+  // Cloudflare에는 Vercel 이미지 최적화기가 없다. 유일한 next/image(정적 로고)라 최적화 없이 원본 서빙.
+  images: { unoptimized: true },
   async redirects() {
     return [
       {
