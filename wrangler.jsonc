@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "main": ".open-next/worker.js",
-  "name": "ondostory",
+  "name": "ondostory-blog",
   "compatibility_date": "2026-03-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
