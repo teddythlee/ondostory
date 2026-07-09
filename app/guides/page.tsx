@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import { getClusters } from '@/lib/clusters'
 import { getPublishedPosts } from '@/lib/posts'
 
-export const revalidate = 3600
+// 클러스터 변경이 즉시 반영되도록 동적 렌더(저트래픽 허브라 비용 무시).
+export const dynamic = 'force-dynamic'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ondostory.com'
 

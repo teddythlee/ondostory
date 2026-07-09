@@ -8,7 +8,7 @@ import RelatedPosts from '@/components/blog/RelatedPosts'
 import ViewCounter from '@/components/blog/ViewCounter'
 import { getClusterByKey } from '@/lib/clusters'
 
-export const revalidate = 3600
+export const revalidate = 600
 export const dynamicParams = true
 
 export async function generateStaticParams() {

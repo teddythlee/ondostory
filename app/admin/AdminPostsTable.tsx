@@ -14,22 +14,6 @@ export default function AdminPostsTable({ posts, clusters }: { posts: Post[]; cl
   // 낙관적 배정 오버라이드 (postId -> clusterKey|null)
   const [assignments, setAssignments] = useState<Record<string, string | null>>({})
   const [savingId, setSavingId] = useState<string | null>(null)
-  const [revalidating, setRevalidating] = useState(false)
-  const [revalMsg, setRevalMsg] = useState<string | null>(null)
-
-  async function revalidate() {
-    setRevalidating(true)
-    setRevalMsg(null)
-    try {
-      const res = await fetch('/api/revalidate', { method: 'POST' })
-      if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.error || '갱신 실패')
-      setRevalMsg('✓ 갱신됨 · 공개 페이지에 곧 반영됩니다')
-    } catch (err) {
-      setRevalMsg(err instanceof Error ? err.message : '갱신 실패')
-    } finally {
-      setRevalidating(false)
-    }
-  }
 
   const clusterKeyOf = (p: Post) => (p.id in assignments ? assignments[p.id] : p.cluster)
   const clusterMap = new Map(clusters.map((c) => [c.key, c]))
@@ -72,18 +56,8 @@ export default function AdminPostsTable({ posts, clusters }: { posts: Post[]; cl
           )}
         </div>
         <div className="flex items-center gap-2">
-          {clusterMode && revalMsg && (
-            <span className={`text-xs ${revalMsg.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>{revalMsg}</span>
-          )}
           {clusterMode && (
-            <button
-              onClick={revalidate}
-              disabled={revalidating}
-              className="text-sm border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              title="배정·수정한 내용을 공개 페이지에 즉시 반영"
-            >
-              {revalidating ? '갱신 중…' : '🔄 사이트 갱신'}
-            </button>
+            <span className="text-xs text-gray-400">허브 즉시 반영 · 글 링크 ~10분</span>
           )}
           {clusterMode && (
             <button

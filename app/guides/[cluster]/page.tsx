@@ -1,22 +1,17 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getClusters, getClusterByKey } from '@/lib/clusters'
+import { getClusterByKey } from '@/lib/clusters'
 import { getPostsByCluster } from '@/lib/posts'
 import type { Post } from '@/types'
 
-export const revalidate = 3600
-export const dynamicParams = true
+// 클러스터 변경이 즉시 반영되도록 동적 렌더(저트래픽 허브라 비용 무시).
+export const dynamic = 'force-dynamic'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ondostory.com'
 
 interface Props {
   params: Promise<{ cluster: string }>
-}
-
-export async function generateStaticParams() {
-  const clusters = await getClusters().catch(() => [])
-  return clusters.map((c) => ({ cluster: c.key }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
