@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { getPublishedPosts } from '@/lib/posts'
+import { CLUSTERS } from '@/lib/clusters'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,8 +24,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.3,
   }))
 
+  // 클러스터 허브(필러) 페이지들 — 색인 우선순위를 높게 준다.
+  const clusterEntries: MetadataRoute.Sitemap = Object.values(CLUSTERS).map((c) => ({
+    url: `${siteUrl}/guides/${c.path}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.9,
+  }))
+
   return [
     { url: `${siteUrl}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
+    ...clusterEntries,
     ...postEntries,
     ...staticPageEntries,
   ]

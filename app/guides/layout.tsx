@@ -2,7 +2,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import FooterNav from '@/components/blog/FooterNav'
 
-export default function BlogLayout({ children }: { children: React.ReactNode }) {
+// 허브(가이드) 페이지는 /blog 레이아웃 밖이라 동일한 헤더/푸터 크롬을 여기서 재사용한다.
+export default function GuidesLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <header className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-10">
@@ -34,8 +35,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
         <div className="py-5">
           <FooterNav />
           <p className="text-center text-xs text-gray-400 mt-3">
-            © {new Date().getFullYear()} ondostory. All rights reserved. &nbsp;·&nbsp; Some photos by{' '}
-            <a href="https://www.pexels.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Pexels</a>
+            © {new Date().getFullYear()} ondostory. All rights reserved.
           </p>
         </div>
       </footer>

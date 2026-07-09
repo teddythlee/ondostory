@@ -6,6 +6,7 @@ import { ko } from 'date-fns/locale'
 import type { Metadata } from 'next'
 import RelatedPosts from '@/components/blog/RelatedPosts'
 import ViewCounter from '@/components/blog/ViewCounter'
+import { getClusterByKey } from '@/lib/clusters'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -55,6 +56,7 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound()
 
   const allPosts = await getPublishedPosts().catch(() => [])
+  const cluster = getClusterByKey(post.cluster)
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
   const url = `${siteUrl}/blog/${post.slug}`
@@ -124,6 +126,22 @@ export default async function PostPage({ params }: Props) {
         className="prose text-gray-800"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+
+      {cluster && (
+        <Link
+          href={`/guides/${cluster.path}`}
+          className="mt-14 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 hover:border-blue-200 hover:bg-blue-50/50 transition-colors group"
+        >
+          <span className="text-2xl">{cluster.emoji}</span>
+          <span className="flex-1">
+            <span className="block text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+              {cluster.title} 전체 보기
+            </span>
+            <span className="block text-xs text-gray-500 mt-0.5">{cluster.tagline}</span>
+          </span>
+          <span className="text-gray-300 group-hover:text-blue-400 transition-colors">→</span>
+        </Link>
+      )}
 
       <RelatedPosts current={post} all={allPosts} />
 

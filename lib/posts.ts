@@ -15,6 +15,18 @@ export async function getPublishedPosts(): Promise<Post[]> {
   return data || []
 }
 
+export async function getPostsByCluster(cluster: string): Promise<Post[]> {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('published', true)
+    .eq('cluster', cluster)
+    .order('published_at', { ascending: false })
+
+  if (error) throw error
+  return data || []
+}
+
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   const { data, error } = await supabase
     .from('posts')
