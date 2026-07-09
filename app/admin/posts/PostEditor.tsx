@@ -3,15 +3,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import type { Post } from '@/types'
+import type { Post, Cluster } from '@/types'
 import type { RichEditorHandle } from '@/components/editor/RichEditor'
 import ImageSearchPanel from '@/components/editor/ImageSearchPanel'
 
 const RichEditor = dynamic(() => import('@/components/editor/RichEditor'), { ssr: false })
 
-interface Props { post?: Post }
+interface Props { post?: Post; clusters?: Cluster[] }
 
-export default function PostEditor({ post }: Props) {
+export default function PostEditor({ post, clusters = [] }: Props) {
   const router = useRouter()
   const [title, setTitle] = useState(post?.title || '')
   const [slug, setSlug] = useState(post?.slug || '')
@@ -20,6 +20,7 @@ export default function PostEditor({ post }: Props) {
   const [coverImage, setCoverImage] = useState(post?.cover_image || '')
   const [tags, setTags] = useState(post?.tags.join(', ') || '')
   const [category, setCategory] = useState(post?.category || '')
+  const [cluster, setCluster] = useState(post?.cluster || '')
   const [metaTitle, setMetaTitle] = useState(post?.meta_title || '')
   const [metaDescription, setMetaDescription] = useState(post?.meta_description || '')
   const [published, setPublished] = useState(post?.published || false)
@@ -97,6 +98,7 @@ export default function PostEditor({ post }: Props) {
       cover_image: coverImage || null,
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       category: category.trim() || null,
+      cluster: cluster || null,
       meta_title: metaTitle || null,
       meta_description: metaDescription || null,
       published: shouldPublish,
@@ -249,6 +251,24 @@ export default function PostEditor({ post }: Props) {
                 <span className="text-[11px] text-gray-400">커버 이미지 자동 설정됨</span>
               </div>
             )}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">클러스터 (가이드 허브)</label>
+              <select
+                value={cluster}
+                onChange={(e) => setCluster(e.target.value)}
+                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 bg-white"
+              >
+                <option value="">— 미분류 —</option>
+                {clusters.map((c) => (
+                  <option key={c.key} value={c.key}>{c.emoji} {c.title}</option>
+                ))}
+              </select>
+              {cluster && (
+                <p className="text-[11px] text-gray-400 mt-1">
+                  이 글 하단에 &quot;{clusters.find((c) => c.key === cluster)?.title}&quot; 허브 링크가 자동 노출됩니다.
+                </p>
+              )}
+            </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">카테고리</label>
               <input
