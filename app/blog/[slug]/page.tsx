@@ -56,7 +56,7 @@ export default async function PostPage({ params }: Props) {
   if (!post) notFound()
 
   const allPosts = await getPublishedPosts().catch(() => [])
-  const cluster = getClusterByKey(post.cluster)
+  const cluster = await getClusterByKey(post.cluster)
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
   const url = `${siteUrl}/blog/${post.slug}`
@@ -129,7 +129,7 @@ export default async function PostPage({ params }: Props) {
 
       {cluster && (
         <Link
-          href={`/guides/${cluster.path}`}
+          href={`/guides/${cluster.key}`}
           className="mt-14 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 hover:border-blue-200 hover:bg-blue-50/50 transition-colors group"
         >
           <span className="text-2xl">{cluster.emoji}</span>

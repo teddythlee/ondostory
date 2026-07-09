@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 import { getPublishedPosts } from '@/lib/posts'
-import { CLUSTERS } from '@/lib/clusters'
+import { getClusters } from '@/lib/clusters'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +10,7 @@ const STATIC_PAGE_SLUGS = ['about', 'contact', 'privacy-policy', 'terms', 'discl
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
   const posts = await getPublishedPosts().catch(() => [])
+  const clusters = await getClusters().catch(() => [])
 
   const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${siteUrl}/blog/${post.slug}`,
@@ -25,8 +26,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   // 클러스터 허브(필러) 페이지들 — 색인 우선순위를 높게 준다.
-  const clusterEntries: MetadataRoute.Sitemap = Object.values(CLUSTERS).map((c) => ({
-    url: `${siteUrl}/guides/${c.path}`,
+  const clusterEntries: MetadataRoute.Sitemap = clusters.map((c) => ({
+    url: `${siteUrl}/guides/${c.key}`,
     lastModified: new Date(),
     changeFrequency: 'weekly',
     priority: 0.9,
@@ -34,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: `${siteUrl}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
+    { url: `${siteUrl}/guides`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
     ...clusterEntries,
     ...postEntries,
     ...staticPageEntries,

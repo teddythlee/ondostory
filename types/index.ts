@@ -17,6 +17,29 @@ export interface Post {
   view_count: number
 }
 
+export interface Cluster {
+  id: string
+  key: string
+  emoji: string
+  title: string
+  nav_label: string
+  tagline: string
+  meta_description: string
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ClusterInput {
+  key: string
+  emoji?: string
+  title: string
+  nav_label?: string
+  tagline?: string
+  meta_description?: string
+  sort_order?: number
+}
+
 export interface CreatePostInput {
   title: string
   slug: string

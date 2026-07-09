@@ -20,7 +20,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
           </div>
           <nav className="flex items-center gap-5 text-sm text-gray-500">
             <Link href="/blog" className="hover:text-gray-900 transition-colors">블로그</Link>
-            <Link href="/guides/settlement" className="hover:text-gray-900 transition-colors">정착 가이드</Link>
+            <Link href="/guides" className="hover:text-gray-900 transition-colors">가이드</Link>
             <Link href="/blog/about" className="hover:text-gray-900 transition-colors">소개</Link>
           </nav>
         </div>

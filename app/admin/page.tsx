@@ -3,15 +3,18 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
 import { getAllPostsAdmin } from '@/lib/posts'
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
+import { getClustersAdmin } from '@/lib/clusters'
 import AdminLogoutButton from './LogoutButton'
+import AdminPostsTable from './AdminPostsTable'
 
 export default async function AdminPage() {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
-  const posts = await getAllPostsAdmin().catch(() => [])
+  const [posts, clusters] = await Promise.all([
+    getAllPostsAdmin().catch(() => []),
+    getClustersAdmin().catch(() => []),
+  ])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -62,76 +65,7 @@ export default async function AdminPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">글 목록</h2>
-          </div>
-          {posts.length === 0 ? (
-            <div className="py-16 text-center text-gray-400">
-              <p className="mb-4">작성된 글이 없습니다</p>
-              <Link href="/admin/posts/new" className="text-blue-500 hover:underline text-sm">
-                첫 글 작성하기 →
-              </Link>
-            </div>
-          ) : (
-            <table className="w-full table-fixed">
-              <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-3 text-left w-[38%]">제목</th>
-                  <th className="px-4 py-3 text-left w-[18%]">태그</th>
-                  <th className="px-4 py-3 text-left w-[11%]">상태</th>
-                  <th className="px-4 py-3 text-right w-[8%]">조회수</th>
-                  <th className="px-4 py-3 text-left w-[10%]">날짜</th>
-                  <th className="px-4 py-3 text-right w-[15%]">작업</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {posts.map((post) => (
-                  <tr key={post.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <Link href={`/admin/posts/${post.id}`} className="font-medium text-gray-900 hover:text-blue-600 line-clamp-2 leading-snug block">
-                        {post.title}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex gap-1 flex-wrap">
-                        {post.tags.slice(0, 2).map(tag => (
-                          <span key={tag} className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-600">{tag}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${post.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                        {post.published ? '발행됨' : '임시저장'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 text-right whitespace-nowrap">
-                      {post.view_count ?? 0}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {format(new Date(post.created_at), 'yy.MM.dd', { locale: ko })}
-                    </td>
-                    <td className="px-4 py-4 text-right whitespace-nowrap">
-                      <Link href={`/admin/posts/${post.id}`} className="text-sm text-blue-500 hover:underline mr-3">
-                        편집
-                      </Link>
-                      {post.published && (
-                        <Link href={`/blog/${post.slug}`} target="_blank" className="text-sm text-gray-400 hover:underline mr-3">
-                          보기
-                        </Link>
-                      )}
-                      {post.published && (
-                        <Link href={`https://www.google.com/search?q=site:www.ondostory.com/blog/${post.slug}`} target="_blank" className="text-sm text-gray-400 hover:underline">
-                          색인확인
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <AdminPostsTable posts={posts} clusters={clusters} />
       </main>
     </div>
   )
