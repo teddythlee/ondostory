@@ -101,16 +101,12 @@ export default async function PostPage({ params }: Props) {
       <div className="mb-8">
         <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
           <Link href="/blog" className="hover:text-gray-600">블로그</Link>
-          <span>·</span>
           {post.category && (
             <>
-              <Link href={`/blog?category=${encodeURIComponent(post.category)}`} className="text-blue-500 hover:text-blue-700 font-medium">{post.category}</Link>
               <span>·</span>
+              <Link href={`/blog?category=${encodeURIComponent(post.category)}`} className="text-blue-500 hover:text-blue-700 font-medium">{post.category}</Link>
             </>
           )}
-          {post.tags.map((tag) => (
-            <Link key={tag} href={`/blog?tag=${encodeURIComponent(tag)}`} className="bg-gray-100 px-2 py-0.5 rounded-full hover:bg-gray-200 transition-colors">{tag}</Link>
-          ))}
         </div>
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
           {post.title}
@@ -126,6 +122,22 @@ export default async function PostPage({ params }: Props) {
         className="prose text-gray-800"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+
+      {post.tags.length > 0 && (
+        <div className="mt-10 pt-6 border-t border-gray-100">
+          <div className="flex flex-wrap gap-2">
+            {post.tags.map((tag) => (
+              <Link
+                key={tag}
+                href={`/blog?tag=${encodeURIComponent(tag)}`}
+                className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors"
+              >
+                #{tag}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {cluster && (
         <Link
