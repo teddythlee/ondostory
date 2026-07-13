@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
 import './globals.css'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
@@ -61,15 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col">
-        {children}
-        {/* Cloudflare Web Analytics — 무료 방문/유입 분석 (쿠키 없음) */}
-        <Script
-          src="https://static.cloudflareinsights.com/beacon.min.js"
-          data-cf-beacon='{"token": "5f7dfe0273a3418fbbed4de705205d62"}'
-          strategy="afterInteractive"
-        />
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   )
 }
