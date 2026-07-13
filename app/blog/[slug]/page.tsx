@@ -123,14 +123,33 @@ export default async function PostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
 
+      {cluster && (
+        <Link
+          href={`/guides/${cluster.key}`}
+          className="mt-10 flex items-center gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 px-5 py-5 hover:border-blue-300 hover:bg-blue-50 transition-colors group"
+        >
+          <span className="text-3xl">{cluster.emoji}</span>
+          <span className="flex-1">
+            <span className="block text-[11px] font-semibold uppercase tracking-wider text-blue-400 mb-0.5">가이드 모음</span>
+            <span className="block text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+              {cluster.title} 전체 보기
+            </span>
+            <span className="block text-xs text-gray-500 mt-0.5">{cluster.tagline}</span>
+          </span>
+          <span className="text-blue-300 group-hover:text-blue-500 transition-colors text-lg">→</span>
+        </Link>
+      )}
+
+      <RelatedPosts current={post} all={allPosts} />
+
       {post.tags.length > 0 && (
-        <div className="mt-10 pt-6 border-t border-gray-100">
+        <div className="mt-12 pt-6 border-t border-gray-100">
           <div className="flex flex-wrap gap-2">
             {post.tags.map((tag) => (
               <Link
                 key={tag}
                 href={`/blog?tag=${encodeURIComponent(tag)}`}
-                className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors"
+                className="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors"
               >
                 #{tag}
               </Link>
@@ -138,24 +157,6 @@ export default async function PostPage({ params }: Props) {
           </div>
         </div>
       )}
-
-      {cluster && (
-        <Link
-          href={`/guides/${cluster.key}`}
-          className="mt-14 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 hover:border-blue-200 hover:bg-blue-50/50 transition-colors group"
-        >
-          <span className="text-2xl">{cluster.emoji}</span>
-          <span className="flex-1">
-            <span className="block text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-              {cluster.title} 전체 보기
-            </span>
-            <span className="block text-xs text-gray-500 mt-0.5">{cluster.tagline}</span>
-          </span>
-          <span className="text-gray-300 group-hover:text-blue-400 transition-colors">→</span>
-        </Link>
-      )}
-
-      <RelatedPosts current={post} all={allPosts} />
 
       <div className="mt-10 pt-8 border-t border-gray-100">
         <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors">
