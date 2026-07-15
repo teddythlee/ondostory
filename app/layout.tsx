@@ -1,7 +1,11 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
+
+export const viewport: Viewport = {
+  themeColor: '#ffffff',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -12,6 +16,11 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.png',
     apple: '/favicon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'ondostory',
+    statusBarStyle: 'default',
   },
   description: '삶의 온도는 하나가 아니다. 새로운 온도를 발견하는 라이프스타일 큐레이션.',
   keywords: ['블로그', 'ondostory', '온도이야기'],
