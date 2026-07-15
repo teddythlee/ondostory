@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const post = await createPost(body)
 
-    if (post.published) {
+    if (post.status === 'published') {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
       const postUrl = `${siteUrl}/blog/${post.slug}`
       await notifyGoogleIndexing(postUrl, 'URL_UPDATED')

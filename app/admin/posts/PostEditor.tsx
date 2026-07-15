@@ -23,7 +23,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
   const [cluster, setCluster] = useState(post?.cluster || '')
   const [metaTitle, setMetaTitle] = useState(post?.meta_title || '')
   const [metaDescription, setMetaDescription] = useState(post?.meta_description || '')
-  const [published, setPublished] = useState(post?.published || false)
+  const [published, setPublished] = useState(post?.status === 'published')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [slugEdited, setSlugEdited] = useState(!!post)
@@ -101,7 +101,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
       cluster: cluster || null,
       meta_title: metaTitle || null,
       meta_description: metaDescription || null,
-      published: shouldPublish,
+      status: shouldPublish ? 'published' : 'draft',
     }
 
     try {

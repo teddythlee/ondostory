@@ -1,3 +1,5 @@
+export type PostStatus = 'draft' | 'published' | 'scheduled' | 'archived'
+
 export interface Post {
   id: string
   title: string
@@ -5,6 +7,8 @@ export interface Post {
   content: string
   excerpt: string
   cover_image: string | null
+  status: PostStatus
+  /** Derived shadow of `status` (status='published'). Kept in sync by DB trigger; will be dropped once fully migrated. */
   published: boolean
   published_at: string | null
   created_at: string
@@ -46,7 +50,7 @@ export interface CreatePostInput {
   content: string
   excerpt: string
   cover_image?: string
-  published: boolean
+  status: PostStatus
   tags: string[]
   meta_title?: string
   meta_description?: string

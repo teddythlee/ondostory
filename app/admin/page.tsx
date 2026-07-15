@@ -63,11 +63,11 @@ export default async function AdminPage() {
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <p className="text-sm text-gray-500 mb-1">발행된 글</p>
-            <p className="text-3xl font-bold text-green-600">{posts.filter(p => p.published).length}</p>
+            <p className="text-3xl font-bold text-green-600">{posts.filter(p => p.status === 'published').length}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <p className="text-sm text-gray-500 mb-1">임시저장</p>
-            <p className="text-3xl font-bold text-yellow-500">{posts.filter(p => !p.published).length}</p>
+            <p className="text-3xl font-bold text-yellow-500">{posts.filter(p => p.status !== 'published').length}</p>
           </div>
         </div>
 

@@ -113,8 +113,8 @@ export default function BloggerImport() {
                   <p className="font-medium text-sm text-gray-900 line-clamp-1">{post.title}</p>
                   <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{post.excerpt}</p>
                   <div className="flex items-center gap-2 mt-1.5">
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${post.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                      {post.published ? '발행' : '임시저장'}
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${post.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      {post.status === 'published' ? '발행' : '임시저장'}
                     </span>
                     {post.published_at && (
                       <span className="text-xs text-gray-400">{post.published_at.slice(0, 10)}</span>

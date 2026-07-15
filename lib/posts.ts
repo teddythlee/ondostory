@@ -7,7 +7,7 @@ export async function getPublishedPosts(): Promise<Post[]> {
   const { data, error } = await supabase
     .from('posts')
     .select('*')
-    .eq('published', true)
+    .eq('status', 'published')
     .not('slug', 'in', `(${PAGE_SLUGS.join(',')})`)
     .order('published_at', { ascending: false })
 
@@ -19,7 +19,7 @@ export async function getPostsByCluster(cluster: string): Promise<Post[]> {
   const { data, error } = await supabase
     .from('posts')
     .select('*')
-    .eq('published', true)
+    .eq('status', 'published')
     .eq('cluster', cluster)
     .order('published_at', { ascending: false })
 
@@ -32,7 +32,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     .from('posts')
     .select('*')
     .eq('slug', slug)
-    .eq('published', true)
+    .eq('status', 'published')
     .single()
 
   if (error) return null
@@ -67,7 +67,7 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
     .from('posts')
     .insert({
       ...input,
-      published_at: input.published ? now : null,
+      published_at: input.status === 'published' ? now : null,
       created_at: now,
       updated_at: now,
     })
@@ -82,7 +82,7 @@ export async function updatePost(id: string, input: Partial<CreatePostInput>): P
   const updates: Record<string, unknown> = { ...input, updated_at: new Date().toISOString() }
 
   // Set published_at when first published
-  if (input.published) {
+  if (input.status === 'published') {
     const existing = await getPostByIdAdmin(id)
     if (existing && !existing.published_at) {
       updates.published_at = new Date().toISOString()

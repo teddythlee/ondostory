@@ -135,8 +135,8 @@ export default function AdminPostsTable({ posts, clusters }: { posts: Post[]; cl
                   </td>
                 )}
                 <td className="px-4 py-4">
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${post.published ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {post.published ? '발행됨' : '임시저장'}
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${post.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {post.status === 'published' ? '발행됨' : '임시저장'}
                   </span>
                 </td>
                 {!clusterMode && (
@@ -147,7 +147,7 @@ export default function AdminPostsTable({ posts, clusters }: { posts: Post[]; cl
                 </td>
                 <td className="px-4 py-4 text-right whitespace-nowrap">
                   <Link href={`/admin/posts/${post.id}`} className="text-sm text-blue-500 hover:underline mr-3">편집</Link>
-                  {post.published && (
+                  {post.status === 'published' && (
                     <Link href={`/blog/${post.slug}`} target="_blank" className="text-sm text-gray-400 hover:underline">보기</Link>
                   )}
                 </td>

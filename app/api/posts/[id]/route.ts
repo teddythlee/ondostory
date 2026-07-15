@@ -16,7 +16,7 @@ export async function PATCH(req: NextRequest, { params }: Props) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
     const postUrl = `${siteUrl}/blog/${post.slug}`
 
-    if (post.published) {
+    if (post.status === 'published') {
       await notifyGoogleIndexing(postUrl, 'URL_UPDATED')
       await notifyIndexNow(postUrl)
       await notifyGoogleSitemapPing(siteUrl)
@@ -41,7 +41,7 @@ export async function DELETE(req: NextRequest, { params }: Props) {
 
     await deletePost(id)
 
-    if (post?.published) {
+    if (post?.status === 'published') {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
       await notifyGoogleIndexing(`${siteUrl}/blog/${post.slug}`, 'URL_DELETED')
     }

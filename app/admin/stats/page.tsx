@@ -15,7 +15,7 @@ export default async function StatsPage() {
     getClustersAdmin().catch(() => []),
   ])
 
-  const published = posts.filter((p) => p.published)
+  const published = posts.filter((p) => p.status === 'published')
   const views = (id: string) => published.find((p) => p.id === id)?.view_count ?? 0
   const totalViews = published.reduce((s, p) => s + (p.view_count ?? 0), 0)
   const avg = published.length ? Math.round(totalViews / published.length) : 0

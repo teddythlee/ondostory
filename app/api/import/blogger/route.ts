@@ -7,7 +7,7 @@ export interface BloggerPost {
   slug: string
   content: string
   excerpt: string
-  published: boolean
+  status: 'draft' | 'published'
   published_at: string | null
   tags: string[]
   cover_image: string | null
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       slug,
       content: rawContent,
       excerpt,
-      published: status === 'LIVE',
+      status: status === 'LIVE' ? 'published' : 'draft',
       published_at,
       tags,
       cover_image,
