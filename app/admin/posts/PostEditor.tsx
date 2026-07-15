@@ -270,14 +270,16 @@ export default function PostEditor({ post, clusters = [] }: Props) {
               )}
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">카테고리</label>
-              <input
-                type="text"
+              <label className="block text-xs text-gray-500 mb-1">카테고리 (글 유형)</label>
+              <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="일상 / 여행 / 음식 / 생각"
-                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400"
-              />
+                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 bg-white"
+              >
+                <option value="">— 미지정 —</option>
+                <option value="후기">후기 (경험 평가)</option>
+                <option value="정보">정보 (방법·비교·리스트)</option>
+              </select>
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1">태그 (쉼표로 구분)</label>
