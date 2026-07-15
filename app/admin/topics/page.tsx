@@ -44,7 +44,8 @@ function Table({ title, hint, rows, asPage }: { title: string; hint: string; row
       {rows.length === 0 ? (
         <p className="px-4 py-8 text-center text-sm text-gray-400">해당하는 데이터가 아직 없어요.</p>
       ) : (
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[520px]">
           <thead>
             <tr className="border-b border-gray-100 text-right">
               <th className="px-4 py-2 text-xs font-medium text-gray-400 text-left">{asPage ? '페이지' : '검색어'}</th>
@@ -65,6 +66,7 @@ function Table({ title, hint, rows, asPage }: { title: string; hint: string; row
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   )
@@ -79,15 +81,15 @@ export default async function TopicsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
             <Link href="/" className="text-lg font-bold text-gray-900">ondostory</Link>
             <span className="text-gray-300">·</span>
             <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-900">관리자</Link>
             <span className="text-gray-300">›</span>
             <span className="text-sm text-gray-700">주제 발굴</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <Link href="/admin" className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">← 전체 목록</Link>
             <AdminLogoutButton />
           </div>

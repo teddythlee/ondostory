@@ -29,15 +29,15 @@ export default async function DraftsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
             <Link href="/" className="text-lg font-bold text-gray-900">ondostory</Link>
             <span className="text-gray-300">·</span>
             <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-900">관리자</Link>
             <span className="text-gray-300">›</span>
             <span className="text-sm text-gray-700">초안</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/admin"
               className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
@@ -73,8 +73,8 @@ export default async function DraftsPage() {
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-gray-100 text-left">
                   <th className="px-4 py-3 text-xs font-medium text-gray-400">제목</th>

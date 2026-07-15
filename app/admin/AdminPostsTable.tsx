@@ -88,7 +88,8 @@ export default function AdminPostsTable({ posts, clusters }: { posts: Post[]; cl
           <Link href="/admin/posts/new" className="text-blue-500 hover:underline text-sm">첫 글 작성하기 →</Link>
         </div>
       ) : (
-        <table className="w-full table-fixed">
+        <div className="overflow-x-auto">
+        <table className="w-full table-fixed min-w-[720px]">
           <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
             <tr>
               <th className="px-6 py-3 text-left w-[40%]">제목</th>
@@ -155,6 +156,7 @@ export default function AdminPostsTable({ posts, clusters }: { posts: Post[]; cl
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   )

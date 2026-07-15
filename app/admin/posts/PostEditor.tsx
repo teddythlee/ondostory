@@ -136,7 +136,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <button onClick={() => router.push('/admin')} className="text-sm text-gray-500 hover:text-gray-900">
               ← 목록
@@ -146,7 +146,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
               {post ? '글 편집' : '새 글 쓰기'}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {message && <span className="text-xs text-gray-500">{message}</span>}
             {post && (
               <button onClick={handleDelete} className="text-sm text-red-400 hover:text-red-600 px-3 py-1.5">
@@ -171,7 +171,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-3 gap-6">
+      <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main */}
         <div className="col-span-2 space-y-4">
           <input
@@ -206,7 +206,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
         </div>
 
         {/* Sidebar - sticky, follows scroll */}
-        <div className="space-y-4 sticky top-4 self-start max-h-[calc(100vh-5rem)] overflow-y-auto pb-4">
+        <div className="space-y-4 lg:sticky lg:top-4 self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto pb-4">
           <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
             <h3 className="font-semibold text-sm text-gray-700">발행 설정</h3>
             <label className="flex items-center gap-2 cursor-pointer">
