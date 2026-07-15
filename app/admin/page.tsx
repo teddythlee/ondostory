@@ -15,6 +15,7 @@ export default async function AdminPage() {
     getAllPostsAdmin().catch(() => []),
     getClustersAdmin().catch(() => []),
   ])
+  const drafts = posts.filter((p) => p.status !== 'published')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -26,6 +27,18 @@ export default async function AdminPage() {
             <span className="text-sm text-gray-500">관리자</span>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href="/admin/topics"
+              className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              주제 발굴
+            </Link>
+            <Link
+              href="/admin/drafts"
+              className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              초안{drafts.length > 0 && <span className="ml-1 text-yellow-600 font-semibold">{drafts.length}</span>}
+            </Link>
             <Link
               href="/admin/stats"
               className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
@@ -65,10 +78,10 @@ export default async function AdminPage() {
             <p className="text-sm text-gray-500 mb-1">발행된 글</p>
             <p className="text-3xl font-bold text-green-600">{posts.filter(p => p.status === 'published').length}</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <p className="text-sm text-gray-500 mb-1">임시저장</p>
-            <p className="text-3xl font-bold text-yellow-500">{posts.filter(p => p.status !== 'published').length}</p>
-          </div>
+          <Link href="/admin/drafts" className="bg-white rounded-xl border border-gray-200 p-5 hover:border-yellow-300 transition-colors">
+            <p className="text-sm text-gray-500 mb-1">임시저장 (초안 검토)</p>
+            <p className="text-3xl font-bold text-yellow-500">{drafts.length}</p>
+          </Link>
         </div>
 
         <AdminPostsTable posts={posts} clusters={clusters} />
