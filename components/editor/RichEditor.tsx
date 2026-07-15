@@ -57,6 +57,40 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
 
   function generateAlt(editorInstance: typeof editor) {
     const base = title.trim() || 'ondostory'
+
+    // Pull context from the nearest preceding heading (or, if none, the nearest
+    // preceding paragraph) so the alt describes what's around the image, not a
+    // generic "제목 이미지 N".
+    let context = ''
+    try {
+      const state = editorInstance?.state
+      if (state) {
+        const pos = state.selection.from
+        let heading = ''
+        let para = ''
+        state.doc.nodesBetween(0, pos, (node) => {
+          const t = node.textContent.trim()
+          if (!t) return true
+          if (node.type.name === 'heading') heading = t
+          else if (node.type.name === 'paragraph') para = t
+          return true
+        })
+        context = (heading || para)
+          .replace(/\[사진[^\]]*\]/g, '')
+          .replace(/\[\[[^\]]*\]\]/g, '')
+          .replace(/\s+/g, ' ')
+          .slice(0, 50)
+          .trim()
+      }
+    } catch {
+      context = ''
+    }
+
+    if (context) {
+      // include base keywords once, keep it short
+      const alt = context.includes(base) || base.includes(context) ? context : `${base} — ${context}`
+      return alt.slice(0, 80)
+    }
     const count = editorInstance?.getHTML().match(/<img /g)?.length ?? 0
     return `${base} 이미지 ${count + 1}`
   }
