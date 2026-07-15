@@ -28,6 +28,12 @@ export default async function AdminPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link
+              href="/admin/ideas"
+              className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              아이디어
+            </Link>
+            <Link
               href="/admin/topics"
               className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
             >
