@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
-import { getGscInsights, type GscRow } from '@/lib/gsc'
+import { getGscInsights, type GscRow, type GscQueryPage } from '@/lib/gsc'
 import AdminLogoutButton from '../LogoutButton'
 
 function pct(n: number) {
@@ -72,6 +72,52 @@ function Table({ title, hint, rows, asPage }: { title: string; hint: string; row
   )
 }
 
+// 검색어 → 걸린 페이지: 커버리지/콘텐츠 갭 발굴용.
+// 검색어가 엉뚱한 페이지에 걸려 있으면 = 그 주제 전용 글이 없다는 신호(갭).
+function QueryPageTable({ rows }: { rows: GscQueryPage[] }) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100">
+        <h2 className="font-semibold text-sm text-gray-900">🔍 검색어 → 걸린 페이지 (콘텐츠 갭 발굴)</h2>
+        <p className="text-xs text-gray-400 mt-0.5">
+          검색어가 <b>주제에 안 맞는 페이지</b>에 걸려 있으면 그 주제 전용 글이 없다는 뜻 → 새 글 후보.
+          같은 페이지에 검색어가 <b>여러 개 몰리면</b> 수요 큰 주제 → 그 글 보강.
+        </p>
+      </div>
+      {rows.length === 0 ? (
+        <p className="px-4 py-8 text-center text-sm text-gray-400">아직 데이터가 없어요.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px]">
+            <thead>
+              <tr className="border-b border-gray-100 text-right">
+                <th className="px-4 py-2 text-xs font-medium text-gray-400 text-left">검색어</th>
+                <th className="px-4 py-2 text-xs font-medium text-gray-400">노출</th>
+                <th className="px-4 py-2 text-xs font-medium text-gray-400">클릭</th>
+                <th className="px-4 py-2 text-xs font-medium text-gray-400">순위</th>
+                <th className="px-4 py-2 text-xs font-medium text-gray-400 text-left">걸린 페이지</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
+                  <td className="px-4 py-3 text-sm text-gray-900">{r.query}</td>
+                  <td className="px-4 py-3 text-right text-sm text-gray-500 whitespace-nowrap">{r.impressions}</td>
+                  <td className="px-4 py-3 text-right text-sm text-gray-500 whitespace-nowrap">{r.clicks}</td>
+                  <td className="px-4 py-3 text-right text-sm font-medium text-gray-900 whitespace-nowrap">{r.position.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500">
+                    <a href={r.page} target="_blank" className="hover:text-blue-600">{pathOf(r.page).replace('/blog/', '')}</a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default async function TopicsPage() {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
@@ -125,11 +171,7 @@ export default async function TopicsPage() {
               rows={gsc.lowCtrPages}
               asPage
             />
-            <Table
-              title="📊 노출 상위 검색어 (참고)"
-              hint="사람들이 온도스토리를 어떤 검색어로 만나는지. 새 글·클러스터 방향 참고용."
-              rows={gsc.topQueries}
-            />
+            <QueryPageTable rows={gsc.queryPages} />
           </>
         )}
       </main>

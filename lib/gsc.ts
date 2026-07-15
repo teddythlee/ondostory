@@ -115,6 +115,15 @@ function daysAgo(n: number): string {
   return new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10)
 }
 
+export interface GscQueryPage {
+  query: string
+  page: string
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
 export interface GscInsights {
   configured: boolean
   range: { startDate: string; endDate: string }
@@ -122,23 +131,24 @@ export interface GscInsights {
   opportunities: GscRow[]
   /** Pages with impressions but weak CTR: title/meta rewrite candidates. */
   lowCtrPages: GscRow[]
-  /** Top queries by impressions, for context. */
-  topQueries: GscRow[]
+  /** Top query→landing-page pairs by impressions: coverage / content-gap discovery. */
+  queryPages: GscQueryPage[]
   error?: string
 }
 
-const emptyRange = () => ({ startDate: daysAgo(31), endDate: daysAgo(3) })
+const emptyRange = () => ({ startDate: daysAgo(90), endDate: daysAgo(3) })
 
 export async function getGscInsights(): Promise<GscInsights> {
   const range = emptyRange()
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-    return { configured: false, range, opportunities: [], lowCtrPages: [], topQueries: [] }
+    return { configured: false, range, opportunities: [], lowCtrPages: [], queryPages: [] }
   }
 
   try {
-    const [queries, pages] = await Promise.all([
+    const [queries, pages, qp] = await Promise.all([
       query({ ...range, dimensions: ['query'] }),
       query({ ...range, dimensions: ['page'] }),
+      query({ ...range, dimensions: ['query', 'page'] }),
     ])
 
     const opportunities = queries
@@ -151,18 +161,26 @@ export async function getGscInsights(): Promise<GscInsights> {
       .sort((a, b) => b.impressions - a.impressions)
       .slice(0, 25)
 
-    const topQueries = [...queries]
+    const queryPages = qp
+      .map((r) => ({
+        query: r.keys[0],
+        page: r.keys[1],
+        clicks: r.clicks,
+        impressions: r.impressions,
+        ctr: r.ctr,
+        position: r.position,
+      }))
       .sort((a, b) => b.impressions - a.impressions)
-      .slice(0, 25)
+      .slice(0, 40)
 
-    return { configured: true, range, opportunities, lowCtrPages, topQueries }
+    return { configured: true, range, opportunities, lowCtrPages, queryPages }
   } catch (err) {
     return {
       configured: true,
       range,
       opportunities: [],
       lowCtrPages: [],
-      topQueries: [],
+      queryPages: [],
       error: err instanceof Error ? err.message : 'GSC query failed',
     }
   }
