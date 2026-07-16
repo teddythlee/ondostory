@@ -16,5 +16,15 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/logo.png', sizes: 'any', type: 'image/png', purpose: 'any' },
       { src: '/favicon.png', sizes: 'any', type: 'image/png', purpose: 'any' },
     ],
-  }
+    // Receive shared photos (Google Photos → 공유 → ondostory) into the idea form.
+    // Android Chrome supported; iOS Safari ignores this.
+    share_target: {
+      action: '/admin/ideas/share',
+      method: 'POST',
+      enctype: 'multipart/form-data',
+      params: {
+        files: [{ name: 'photos', accept: ['image/*'] }],
+      },
+    },
+  } as MetadataRoute.Manifest
 }

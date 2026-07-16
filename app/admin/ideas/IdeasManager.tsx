@@ -50,14 +50,14 @@ function parseBullets(bullets: string): Fields {
   return f
 }
 
-export default function IdeasManager({ initial }: { initial: PostIdea[] }) {
+export default function IdeasManager({ initial, sharedImages = [] }: { initial: PostIdea[]; sharedImages?: string[] }) {
   const [ideas, setIdeas] = useState(initial)
   const [topic, setTopic] = useState('')
   const [fields, setFields] = useState<Fields>(emptyFields())
   const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState('')
+  const [msg, setMsg] = useState(sharedImages.length ? `✅ 공유된 사진 ${sharedImages.length}장 첨부됨 — 주제·불릿 채우고 저장하세요` : '')
   const [editId, setEditId] = useState<string | null>(null)
-  const [images, setImages] = useState<string[]>([])
+  const [images, setImages] = useState<string[]>(sharedImages)
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 

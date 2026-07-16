@@ -6,11 +6,13 @@ import { getIdeas } from '@/lib/ideas'
 import AdminLogoutButton from '../LogoutButton'
 import IdeasManager from './IdeasManager'
 
-export default async function IdeasPage() {
+export default async function IdeasPage({ searchParams }: { searchParams: Promise<{ shared?: string }> }) {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
   const ideas = await getIdeas().catch(() => [])
+  const sp = await searchParams
+  const sharedImages = sp.shared ? sp.shared.split(',').filter(Boolean) : []
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -37,7 +39,7 @@ export default async function IdeasPage() {
             겪은 것만 불릿으로 던지고 <strong>사진도 함께 첨부</strong>하세요(구글포토·갤러리에서 골라 올리면 됨). 나중에 Claude가 이걸 읽어 <strong>사진까지 넣은</strong> 초안으로 만들어 <Link href="/admin/drafts" className="text-blue-500 hover:underline">초안 검토 큐</Link>에 넣어줍니다.
           </p>
         </div>
-        <IdeasManager initial={ideas} />
+        <IdeasManager initial={ideas} sharedImages={sharedImages} />
       </main>
     </div>
   )
