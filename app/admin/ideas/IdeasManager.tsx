@@ -50,14 +50,18 @@ function parseBullets(bullets: string): Fields {
   return f
 }
 
-export default function IdeasManager({ initial, sharedImages = [] }: { initial: PostIdea[]; sharedImages?: string[] }) {
+export default function IdeasManager({ initial, sharedImages = [], shareFailed = false }: { initial: PostIdea[]; sharedImages?: string[]; shareFailed?: boolean }) {
   const [ideas, setIdeas] = useState(initial)
   const [topic, setTopic] = useState('')
   const [fields, setFields] = useState<Fields>(emptyFields())
   const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState(sharedImages.length ? `✅ 공유된 사진 ${sharedImages.length}장 첨부됨 — 주제·불릿 채우고 저장하세요` : '')
+  const [msg, setMsg] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
   const [images, setImages] = useState<string[]>(sharedImages)
+  // Show the share outcome once, until the owner dismisses it.
+  const [shareBanner, setShareBanner] = useState<'ok' | 'fail' | null>(
+    sharedImages.length ? 'ok' : shareFailed ? 'fail' : null
+  )
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -133,6 +137,30 @@ export default function IdeasManager({ initial, sharedImages = [] }: { initial: 
 
   return (
     <div className="space-y-6">
+      {/* Share Target outcome — prominent so it can't be missed on a phone */}
+      {shareBanner && (
+        <div
+          className={`flex items-start gap-2 rounded-xl border px-4 py-3 text-sm ${
+            shareBanner === 'ok'
+              ? 'bg-green-50 border-green-200 text-green-800'
+              : 'bg-amber-50 border-amber-200 text-amber-800'
+          }`}
+        >
+          <span className="flex-1">
+            {shareBanner === 'ok'
+              ? `✅ 공유한 사진 ${sharedImages.length}장을 받았어요. 아래 미리보기에서 확인하고 주제만 채워 저장하세요.`
+              : '⚠️ 공유는 도착했지만 사진을 받지 못했어요. 아래 “📷 사진 첨부”로 직접 올려주세요.'}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShareBanner(null)}
+            className="opacity-60 hover:opacity-100 text-lg leading-none"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Capture form */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
         <div className="flex items-center justify-between">

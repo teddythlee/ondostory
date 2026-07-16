@@ -35,6 +35,9 @@ export async function POST(req: NextRequest) {
   }
 
   const target = new URL('/admin/ideas', req.url)
+  // Always signal the outcome so the form can show success OR failure — a bare
+  // redirect (no query) would look identical to "nothing happened" on the phone.
   if (urls.length) target.searchParams.set('shared', urls.join(','))
+  else target.searchParams.set('share', 'fail')
   return NextResponse.redirect(target, 303)
 }
