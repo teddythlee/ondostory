@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/blog/kuku-rice-cooker-lhtar0609-black-review-i-just-changed-one-rice-cooker-but-the-joy-of-eating-changed',
-        destination: '/blog/kuku-rice-cooker-black-review',
+        destination: '/blog/cukoo-rice-cooker-black-review',
         permanent: true,
       },
       {
