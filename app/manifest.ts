@@ -7,7 +7,10 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'ondostory - 온도이야기',
     short_name: 'ondostory',
     description: '삶의 온도는 하나가 아니다. 새로운 온도를 발견하는 라이프스타일 큐레이션.',
-    start_url: '/',
+    // Opens the admin capture form (this PWA is the owner's tool). Not logged in
+    // → redirects to /admin/login. Public site still reachable via the header logo.
+    start_url: '/admin/ideas',
+    scope: '/',
     display: 'standalone',
     background_color: '#ffffff',
     theme_color: '#ffffff',
