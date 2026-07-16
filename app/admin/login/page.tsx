@@ -117,6 +117,9 @@ export default function AdminLoginPage() {
             {loading ? '로그인 중...' : '로그인'}
           </button>
         </form>
+        <div className="text-center mt-6">
+          <a href="/" className="text-xs text-gray-400 hover:text-gray-600">← 홈으로</a>
+        </div>
       </div>
     </div>
   )
