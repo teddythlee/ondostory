@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
     const idea = await createIdea({
       topic: body.topic.trim(),
       bullets: (body.bullets || '').trim(),
+      image_urls: Array.isArray(body.image_urls) ? body.image_urls : [],
     })
     return NextResponse.json(idea)
   } catch (err) {

@@ -16,6 +16,7 @@ export async function PATCH(req: NextRequest, { params }: Props) {
     const idea = await updateIdea(id, {
       topic: body.topic.trim(),
       bullets: (body.bullets || '').trim(),
+      image_urls: Array.isArray(body.image_urls) ? body.image_urls : [],
     })
     return NextResponse.json(idea)
   } catch (err) {

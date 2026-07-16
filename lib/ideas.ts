@@ -6,6 +6,7 @@ export interface PostIdea {
   id: string
   topic: string
   bullets: string
+  image_urls: string[]
   status: IdeaStatus
   post_id: string | null
   note: string | null
@@ -16,6 +17,7 @@ export interface PostIdea {
 export interface CreateIdeaInput {
   topic: string
   bullets: string
+  image_urls?: string[]
 }
 
 export async function getIdeas(): Promise<PostIdea[]> {
@@ -30,7 +32,7 @@ export async function getIdeas(): Promise<PostIdea[]> {
 export async function createIdea(input: CreateIdeaInput): Promise<PostIdea> {
   const { data, error } = await supabaseAdmin
     .from('post_ideas')
-    .insert({ topic: input.topic, bullets: input.bullets })
+    .insert({ topic: input.topic, bullets: input.bullets, image_urls: input.image_urls ?? [] })
     .select()
     .single()
   if (error) throw error
@@ -40,7 +42,7 @@ export async function createIdea(input: CreateIdeaInput): Promise<PostIdea> {
 export async function updateIdea(id: string, input: CreateIdeaInput): Promise<PostIdea> {
   const { data, error } = await supabaseAdmin
     .from('post_ideas')
-    .update({ topic: input.topic, bullets: input.bullets, updated_at: new Date().toISOString() })
+    .update({ topic: input.topic, bullets: input.bullets, image_urls: input.image_urls ?? [], updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
     .single()
