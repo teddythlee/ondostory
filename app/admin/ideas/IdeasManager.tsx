@@ -14,10 +14,46 @@ const STATUS_LABEL: Record<string, string> = {
   pending: '대기', processing: '생성 중', done: '초안 생성됨', skipped: '보류',
 }
 
+// Labeled fields so the guidance stays visible while typing.
+// Combined into a single `bullets` text on save; parsed back on edit.
+const FIELDS: { key: string; label: string; multi: boolean; ph: string }[] = [
+  { key: '장소/제품', label: '장소 / 제품명', multi: false, ph: '예: 얼바인 하코 돈까스집' },
+  { key: '좋았던 점', label: '좋았던 점', multi: true, ph: '맛·양·서비스 등 좋았던 것 (한 줄에 하나여도 됨)' },
+  { key: '아쉬운 점', label: '솔직히 아쉬운 점', multi: true, ph: '아쉬웠던 것 (없으면 비워도 됨)' },
+  { key: '가격/정보', label: '가격 / 구체 정보', multi: false, ph: '가격, 주소, 소요시간 등 아는 것' },
+  { key: '한국어', label: '한국어 되나? (업체·병원·정비면)', multi: false, ph: '예: 사장님 한국분, 한국어 가능' },
+  { key: '추천 대상', label: '누구에게 추천', multi: false, ph: '예: 돈까스 좋아하는 사람' },
+  { key: '기타', label: '기타 (자유)', multi: true, ph: '분위기·팁 등 더 하고 싶은 말' },
+]
+
+type Fields = Record<string, string>
+const emptyFields = (): Fields => Object.fromEntries(FIELDS.map((f) => [f.key, '']))
+
+function buildBullets(f: Fields): string {
+  return FIELDS.filter((fd) => f[fd.key]?.trim())
+    .map((fd) => `${fd.key}: ${f[fd.key].trim()}`)
+    .join('\n')
+}
+
+function parseBullets(bullets: string): Fields {
+  const f = emptyFields()
+  const prefixes = FIELDS.map((fd) => ({ key: fd.key, p: `${fd.key}:` }))
+  let cur: string | null = null
+  let any = false
+  for (const line of (bullets || '').split('\n')) {
+    const m = prefixes.find((x) => line.startsWith(x.p))
+    if (m) { cur = m.key; f[cur] = line.slice(m.p.length).trim(); any = true }
+    else if (cur) f[cur] += (f[cur] ? '\n' : '') + line
+  }
+  // legacy/unlabeled text → dump into 기타 so nothing is lost
+  if (!any && (bullets || '').trim()) f['기타'] = bullets.trim()
+  return f
+}
+
 export default function IdeasManager({ initial }: { initial: PostIdea[] }) {
   const [ideas, setIdeas] = useState(initial)
   const [topic, setTopic] = useState('')
-  const [bullets, setBullets] = useState('')
+  const [fields, setFields] = useState<Fields>(emptyFields())
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
@@ -25,8 +61,12 @@ export default function IdeasManager({ initial }: { initial: PostIdea[] }) {
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  function setField(key: string, val: string) {
+    setFields((prev) => ({ ...prev, [key]: val }))
+  }
+
   function resetForm() {
-    setTopic(''); setBullets(''); setImages([]); setEditId(null); setMsg('')
+    setTopic(''); setFields(emptyFields()); setImages([]); setEditId(null); setMsg('')
   }
 
   async function onFiles(files: FileList | null) {
@@ -64,7 +104,7 @@ export default function IdeasManager({ initial }: { initial: PostIdea[] }) {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, bullets, image_urls: images }),
+        body: JSON.stringify({ topic, bullets: buildBullets(fields), image_urls: images }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -79,7 +119,7 @@ export default function IdeasManager({ initial }: { initial: PostIdea[] }) {
   }
 
   function startEdit(idea: PostIdea) {
-    setEditId(idea.id); setTopic(idea.topic); setBullets(idea.bullets); setImages(idea.image_urls ?? []); setMsg('')
+    setEditId(idea.id); setTopic(idea.topic); setFields(parseBullets(idea.bullets)); setImages(idea.image_urls ?? []); setMsg('')
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -89,6 +129,8 @@ export default function IdeasManager({ initial }: { initial: PostIdea[] }) {
     if (res.ok) setIdeas((prev) => prev.filter((i) => i.id !== id))
   }
 
+  const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-blue-400'
+
   return (
     <div className="space-y-6">
       {/* Capture form */}
@@ -97,23 +139,44 @@ export default function IdeasManager({ initial }: { initial: PostIdea[] }) {
           <h2 className="font-semibold text-sm text-gray-900">{editId ? '아이디어 수정' : '새 아이디어'}</h2>
           {editId && <button onClick={resetForm} className="text-xs text-gray-400 hover:text-gray-700">+ 새로 쓰기로</button>}
         </div>
-        <input
-          type="text"
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          placeholder="주제 (예: 얼바인 하코 돈까스)"
-          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-blue-400"
-        />
-        <textarea
-          value={bullets}
-          onChange={(e) => setBullets(e.target.value)}
-          rows={6}
-          placeholder={'경험 불릿 (겪은 것만 · 한 줄에 하나)\n- 장소/제품: \n- 좋았던 점: \n- 솔직히 아쉬운 점: \n- 가격/구체 정보: \n- 누구에게 추천: '}
-          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-blue-400 resize-none font-mono"
-        />
+
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">주제 *</label>
+          <input
+            type="text"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="예: 얼바인 하코 돈까스"
+            className={inputCls}
+          />
+        </div>
+
+        {FIELDS.map((fd) => (
+          <div key={fd.key}>
+            <label className="block text-xs font-medium text-gray-600 mb-1">{fd.label}</label>
+            {fd.multi ? (
+              <textarea
+                value={fields[fd.key]}
+                onChange={(e) => setField(fd.key, e.target.value)}
+                rows={2}
+                placeholder={fd.ph}
+                className={`${inputCls} resize-none`}
+              />
+            ) : (
+              <input
+                type="text"
+                value={fields[fd.key]}
+                onChange={(e) => setField(fd.key, e.target.value)}
+                placeholder={fd.ph}
+                className={inputCls}
+              />
+            )}
+          </div>
+        ))}
 
         {/* Photo attach — uploads to blog storage, stored with the idea */}
         <div className="space-y-2">
+          <label className="block text-xs font-medium text-gray-600">사진 (구글포토·갤러리에서 골라 첨부)</label>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -125,14 +188,7 @@ export default function IdeasManager({ initial }: { initial: PostIdea[] }) {
             </button>
             {uploading && <span className="text-xs text-gray-400">업로드 중...</span>}
             {!uploading && images.length > 0 && <span className="text-xs text-gray-400">{images.length}장</span>}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(e) => onFiles(e.target.files)}
-            />
+            <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} />
           </div>
           {images.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -153,7 +209,7 @@ export default function IdeasManager({ initial }: { initial: PostIdea[] }) {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pt-1">
           <button
             onClick={save}
             disabled={saving || uploading}
