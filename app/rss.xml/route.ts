@@ -42,7 +42,7 @@ export async function GET() {
       <guid isPermaLink="true">${url}</guid>
       <pubDate>${date}</pubDate>
       <description>${cdata(p.excerpt || '')}</description>${enclosure}
-      <content:encoded>${cdata(p.content || '')}</content:encoded>
+      <content:encoded>${cdata((p.content || '').replace(/\[메일문의:[^\]]*\]/g, '메일로 문의'))}</content:encoded>
     </item>`
     })
     .join('\n')

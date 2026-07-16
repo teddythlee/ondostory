@@ -6,6 +6,7 @@ import { ko } from 'date-fns/locale'
 import type { Metadata } from 'next'
 import RelatedPosts from '@/components/blog/RelatedPosts'
 import ViewCounter from '@/components/blog/ViewCounter'
+import EmailReveal from '@/components/blog/EmailReveal'
 import { getClusterByKey } from '@/lib/clusters'
 
 export const revalidate = 600
@@ -120,8 +121,20 @@ export default async function PostPage({ params }: Props) {
 
       <article
         className="prose text-gray-800"
-        dangerouslySetInnerHTML={{ __html: post.content }}
+        dangerouslySetInnerHTML={{
+          // [메일문의:주소] 또는 [메일문의:주소|제목] → "메일로 문의" 클릭 링크.
+          // 주소는 base64로 숨겨서 넣는다(스팸봇 방지). 표시 글자는 "메일로 문의".
+          __html: post.content.replace(
+            /\[메일문의:\s*([^\]|]+?)\s*(?:\|\s*([^\]]+?))?\s*\]/g,
+            (_m, email, subj) => {
+              const enc = btoa(String(email))
+              const s = (subj ? String(subj) : 'ondostory 문의').replace(/"/g, '&quot;')
+              return `<a href="#" data-mail="${enc}" data-subj="${s}" class="text-blue-600 underline">메일로 문의</a>`
+            }
+          ),
+        }}
       />
+      <EmailReveal />
 
       {cluster && (
         <Link
