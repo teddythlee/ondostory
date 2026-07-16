@@ -120,6 +120,7 @@ returning id, slug, status;
 ```
 작은따옴표가 섞이면 dollar-quoting(`$body$...$body$`) 사용. `published`는 트리거가 status에서 자동 유도하니 넣지 않는다.
 - `published`는 트리거가 status에서 자동 유도하므로 넣지 않는다.
+- **`post_ideas`에서 생성한 경우: 초안 insert 성공 후 그 아이디어 row를 `delete` 한다** (status='done'로 두지 말고 삭제). 아이디어 목록엔 "아직 글 안 쓴 것"만 남아야 뭘 안 썼는지 한눈에 보인다.
 - 저장 후 사용자에게 알린다: draft 저장됨, 관리자(`/admin`)에서 검토 → 사진 넣고 → 발행. `[[확인 필요]]`와 `[사진: ]` 마커 목록을 함께 보여줘 사람이 뭘 채워야 하는지 명확히 한다.
 
 ## 저장 후 체크리스트로 자기검증
