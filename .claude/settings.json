@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(node node_modules/typescript/bin/tsc --noEmit)",
+      "Bash(node node_modules/eslint/bin/eslint.js components/editor/IframeExtension.ts components/editor/EmbedModal.tsx components/editor/RichEditor.tsx)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(node node_modules/next/dist/bin/next build)",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(node node_modules/eslint/bin/eslint.js components/editor/IframeExtension.ts components/editor/EmbedModal.tsx)",
+      "Bash(echo \"lint exit: $?\")",
+      "Bash(node node_modules/next/dist/bin/next dev)",
+      "Bash(break)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3001/blog)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3001/blog/palm-springs-jw-marriott-resort)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -L http://localhost:3001/admin/posts/new)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(kill 89247)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} -> %{redirect_url}\\\\n\" http://localhost:3000/admin/posts/new)",
+      "Bash(curl -s https://ondostory.com/sitemap.xml -o /tmp/prod_sitemap.xml -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s -I https://ondostory.com/sitemap.xml)",
+      "Bash(curl -sL https://ondostory.com/sitemap.xml -o /tmp/ps.xml -w \"최종 HTTP %{http_code}, 최종 URL: %{url_effective}\\\\n\")",
+      "Bash(curl -s https://www.ondostory.com/sitemap.xml -o /tmp/ps2.xml -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -sL https://ondostory.com/robots.txt)",
+      "Bash(curl -s -o /dev/null -w \"/ : HTTP %{http_code} -> %{redirect_url}\\\\n\" \"https://www.ondostory.com/\")",
+      "Bash(curl -s \"https://www.ondostory.com/blog\")",
+      "Bash(curl -s \"https://www.ondostory.com/blog?category=%EB%A6%AC%EB%B7%B0\")",
+      "Bash(curl -s \"https://www.ondostory.com/blog?tag=test\")",
+      "Bash(node node_modules/eslint/bin/eslint.js app/page.tsx app/sitemap.ts)",
+      "Bash(pkill -f \"next/dist/bin/next dev\")",
+      "Bash(kill 28593)"
+    ]
+  }
+}

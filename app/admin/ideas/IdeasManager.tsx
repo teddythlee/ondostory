@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import type { PostIdea } from '@/lib/ideas'
 
@@ -50,7 +50,7 @@ function parseBullets(bullets: string): Fields {
   return f
 }
 
-export default function IdeasManager({ initial, sharedImages = [], shareFailed = false }: { initial: PostIdea[]; sharedImages?: string[]; shareFailed?: boolean }) {
+export default function IdeasManager({ initial, sharedImages = [], shareFailed = false, sharedEditId = '' }: { initial: PostIdea[]; sharedImages?: string[]; shareFailed?: boolean; sharedEditId?: string }) {
   const [ideas, setIdeas] = useState(initial)
   const [topic, setTopic] = useState('')
   const [fields, setFields] = useState<Fields>(emptyFields())
@@ -58,10 +58,25 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
   const [msg, setMsg] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
   const [images, setImages] = useState<string[]>(sharedImages)
-  // Show the share outcome once, until the owner dismisses it.
-  const [shareBanner, setShareBanner] = useState<'ok' | 'fail' | null>(
-    sharedImages.length ? 'ok' : shareFailed ? 'fail' : null
+  // Share outcome banner, shown once until dismissed.
+  // 'saved'   → photos auto-saved as an idea (opened in edit mode below)
+  // 'prefill' → photos uploaded but idea insert failed; pre-filled, not yet saved
+  // 'fail'    → the share arrived with no photos
+  const [shareBanner, setShareBanner] = useState<{ kind: 'saved'; count: number } | { kind: 'prefill'; count: number } | { kind: 'fail' } | null>(
+    shareFailed ? { kind: 'fail' } : sharedImages.length ? { kind: 'prefill', count: sharedImages.length } : null
   )
+
+  // A photo shared from another app was auto-saved as an idea — open it in edit
+  // mode so the owner only has to fill in the topic/details.
+  useEffect(() => {
+    if (!sharedEditId) return
+    const idea = initial.find((i) => i.id === sharedEditId)
+    if (!idea) return
+    startEdit(idea)
+    setShareBanner({ kind: 'saved', count: idea.image_urls?.length ?? 0 })
+    // run once on mount for the shared idea
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -141,14 +156,16 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
       {shareBanner && (
         <div
           className={`flex items-start gap-2 rounded-xl border px-4 py-3 text-sm ${
-            shareBanner === 'ok'
-              ? 'bg-green-50 border-green-200 text-green-800'
-              : 'bg-amber-50 border-amber-200 text-amber-800'
+            shareBanner.kind === 'fail'
+              ? 'bg-amber-50 border-amber-200 text-amber-800'
+              : 'bg-green-50 border-green-200 text-green-800'
           }`}
         >
           <span className="flex-1">
-            {shareBanner === 'ok'
-              ? `✅ 공유한 사진 ${sharedImages.length}장을 받았어요. 아래 미리보기에서 확인하고 주제만 채워 저장하세요.`
+            {shareBanner.kind === 'saved'
+              ? `✅ 공유한 사진 ${shareBanner.count}장을 아이디어로 저장했어요. 아래에서 주제·내용만 채워 “수정 저장”하세요. 지금 닫아도 목록에 남아 있어요.`
+              : shareBanner.kind === 'prefill'
+              ? `✅ 공유한 사진 ${shareBanner.count}장을 받았어요. 아래 미리보기 확인 후 주제를 채워 저장하세요.`
               : '⚠️ 공유는 도착했지만 사진을 받지 못했어요. 아래 “📷 사진 첨부”로 직접 올려주세요.'}
           </span>
           <button
