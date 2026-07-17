@@ -9,8 +9,9 @@ export default function GuidesLayout({ children }: { children: React.ReactNode }
       <header className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-10">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/blog" className="flex items-center">
+            <Link href="/blog" className="flex items-center gap-2.5">
               <Image src="/logo-lockup.png" alt="OndoStory — Warm stories, everyday moments" width={410} height={349} className="h-16 w-auto" priority />
+              <span className="font-serif text-2xl font-semibold tracking-tight text-[#1e3a5f]">OndoStory</span>
             </Link>
           </div>
           <nav className="flex items-center gap-5 text-sm text-gray-500">
