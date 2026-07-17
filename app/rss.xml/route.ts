@@ -1,4 +1,4 @@
-import { getPublishedPosts } from '@/lib/posts'
+import { getRecentPublishedWithContent } from '@/lib/posts'
 
 // 새 글이 바로 피드에 뜨도록 매 요청마다 생성(자동 게시 도구가 폴링).
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ function imageType(url: string) {
 
 export async function GET() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ondostory.com'
-  const posts = (await getPublishedPosts().catch(() => [])).slice(0, 50)
+  const posts = await getRecentPublishedWithContent(50).catch(() => [])
 
   const items = posts
     .map((p) => {

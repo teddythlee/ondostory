@@ -21,6 +21,13 @@ export interface Post {
   view_count: number
 }
 
+/**
+ * 본문(content)을 뺀 Post. 목록·사이트맵·관련글·관리자 테이블·통계처럼
+ * 본문을 렌더하지 않는 화면에서 사용한다. content는 글당 수십 KB라
+ * 전체 글을 통째로 읽으면 전송량·메모리가 폭증하기 때문이다.
+ */
+export type PostMeta = Omit<Post, 'content'>
+
 export interface Cluster {
   id: string
   key: string

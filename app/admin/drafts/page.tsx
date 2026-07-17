@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { getAdminSession } from '@/lib/auth'
-import { getAllPostsAdmin } from '@/lib/posts'
+import { getDraftsAdmin } from '@/lib/posts'
 import { getClustersAdmin } from '@/lib/clusters'
 import AdminLogoutButton from '../LogoutButton'
 
@@ -19,12 +19,11 @@ export default async function DraftsPage() {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
-  const [posts, clusters] = await Promise.all([
-    getAllPostsAdmin().catch(() => []),
+  const [drafts, clusters] = await Promise.all([
+    getDraftsAdmin().catch(() => []),
     getClustersAdmin().catch(() => []),
   ])
   const clusterMap = new Map(clusters.map((c) => [c.key, c]))
-  const drafts = posts.filter((p) => p.status !== 'published')
 
   return (
     <div className="min-h-screen bg-gray-50">

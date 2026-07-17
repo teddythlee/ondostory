@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import type { Post, Cluster } from '@/types'
+import type { PostMeta, Cluster } from '@/types'
 
-export default function AdminPostsTable({ posts, clusters }: { posts: Post[]; clusters: Cluster[] }) {
+export default function AdminPostsTable({ posts, clusters }: { posts: PostMeta[]; clusters: Cluster[] }) {
   const router = useRouter()
   const [clusterMode, setClusterMode] = useState(false)
   const [managing, setManaging] = useState(false)
@@ -15,10 +15,10 @@ export default function AdminPostsTable({ posts, clusters }: { posts: Post[]; cl
   const [assignments, setAssignments] = useState<Record<string, string | null>>({})
   const [savingId, setSavingId] = useState<string | null>(null)
 
-  const clusterKeyOf = (p: Post) => (p.id in assignments ? assignments[p.id] : p.cluster)
+  const clusterKeyOf = (p: PostMeta) => (p.id in assignments ? assignments[p.id] : p.cluster)
   const clusterMap = new Map(clusters.map((c) => [c.key, c]))
 
-  async function assign(post: Post, rawKey: string) {
+  async function assign(post: PostMeta, rawKey: string) {
     const value = rawKey === '' ? null : rawKey
     const prev = clusterKeyOf(post)
     setSavingId(post.id)

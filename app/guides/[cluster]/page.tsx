@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getClusterByKey } from '@/lib/clusters'
 import { getPostsByCluster } from '@/lib/posts'
-import type { Post } from '@/types'
+import type { PostMeta } from '@/types'
 
 // 클러스터 변경이 즉시 반영되도록 동적 렌더(저트래픽 허브라 비용 무시).
 export const dynamic = 'force-dynamic'
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-function PostRow({ post }: { post: Post }) {
+function PostRow({ post }: { post: PostMeta }) {
   return (
     <Link href={`/blog/${post.slug}`} className="group flex gap-4 items-start py-3">
       {post.cover_image ? (

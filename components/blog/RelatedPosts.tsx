@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { Post } from '@/types'
+import type { PostMeta } from '@/types'
 
 function seededShuffle<T>(arr: T[], seed: string): T[] {
   const copy = [...arr]
@@ -13,7 +13,7 @@ function seededShuffle<T>(arr: T[], seed: string): T[] {
   return copy
 }
 
-export default function RelatedPosts({ current, all }: { current: Post; all: Post[] }) {
+export default function RelatedPosts({ current, all }: { current: PostMeta; all: PostMeta[] }) {
   const others = all.filter(p => p.id !== current.id)
   if (others.length === 0) return null
 

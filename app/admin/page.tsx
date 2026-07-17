@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
-import { getAllPostsAdmin } from '@/lib/posts'
+import { getAllPostsAdminMeta } from '@/lib/posts'
 import { getClustersAdmin } from '@/lib/clusters'
 import AdminLogoutButton from './LogoutButton'
 import AdminPostsTable from './AdminPostsTable'
@@ -12,7 +12,7 @@ export default async function AdminPage() {
   if (!session) redirect('/admin/login')
 
   const [posts, clusters] = await Promise.all([
-    getAllPostsAdmin().catch(() => []),
+    getAllPostsAdminMeta().catch(() => []),
     getClustersAdmin().catch(() => []),
   ])
   const drafts = posts.filter((p) => p.status !== 'published')
