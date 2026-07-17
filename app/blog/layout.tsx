@@ -9,8 +9,8 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/blog" className="flex items-center gap-2">
-              <Image src="/logo.png" alt="ondostory" width={32} height={32} className="rounded-lg" />
-              <span className="text-xl font-bold tracking-tight text-gray-900">ondostory</span>
+              <Image src="/logo.png" alt="OndoStory" width={30} height={30} className="rounded-lg" />
+              <Image src="/wordmark.png" alt="OndoStory" width={846} height={160} className="h-7 w-auto" priority />
             </Link>
             <div className="hidden sm:block w-px h-8 bg-gray-200" />
             <p className="hidden sm:block text-[10px] leading-[1.6] text-gray-300 hover:text-gray-500 transition-colors cursor-default">
