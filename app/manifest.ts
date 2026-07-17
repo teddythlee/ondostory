@@ -31,7 +31,16 @@ export default function manifest(): MetadataRoute.Manifest {
       method: 'POST',
       enctype: 'multipart/form-data',
       params: {
-        files: [{ name: 'photos', accept: ['image/*'] }],
+        // Android is unreliable at delivering files when accept is the bare
+        // 'image/*' wildcard — explicit MIME types make the WebAPK's share
+        // intent filter actually receive the file. Include HEIC/HEIF (iPhone/
+        // some Android cameras) too.
+        files: [
+          {
+            name: 'photos',
+            accept: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif', 'image/*'],
+          },
+        ],
       },
     },
   } as MetadataRoute.Manifest
