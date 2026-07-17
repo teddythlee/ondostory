@@ -228,22 +228,17 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
 
         {/* Photo attach — uploads to blog storage, stored with the idea */}
         <div className="space-y-2">
-          <label className="block text-xs font-medium text-gray-600">사진 (갤러리에서 한 장씩 골라 첨부 — 눌러서 계속 추가)</label>
+          <label className="block text-xs font-medium text-gray-600">사진 (갤러리에서 골라 첨부)</label>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              className="text-sm border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-            >
+            {/* Native <label> tap opens the picker directly. A programmatic
+                fileRef.click() inside a standalone WebAPK can drop the rich
+                chooser/gallery and leave only My Files + Camera, so we avoid it. */}
+            <label className={`text-sm border border-gray-200 px-3 py-1.5 rounded-lg cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-50'}`}>
               📷 사진 첨부
-            </button>
+              <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} />
+            </label>
             {uploading && <span className="text-xs text-gray-400">업로드 중...</span>}
             {!uploading && images.length > 0 && <span className="text-xs text-gray-400">{images.length}장</span>}
-            {/* No `multiple`: on Samsung the multi-select variant hides Gallery
-                from the chooser, leaving only My Files + Camera. Single-select
-                keeps Gallery available; tap again to add more (they accumulate). */}
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => onFiles(e.target.files)} />
           </div>
           {images.length > 0 && (
             <div className="flex flex-wrap gap-2">
