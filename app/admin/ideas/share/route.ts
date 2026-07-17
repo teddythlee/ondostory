@@ -17,9 +17,26 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.redirect(new URL('/admin/login', req.url), 303)
 
   const urls: string[] = []
+  // Compact summary of what the share actually delivered — surfaced back to the
+  // form on failure (I can't read Cloudflare logs), so we can see whether a file
+  // arrived under a different field name, as text, or not at all.
+  let got = 'empty'
   try {
     const form = await req.formData()
-    const files = form.getAll('photos').filter((f): f is File => f instanceof File)
+    // Field-name agnostic: some Android/app share implementations don't use the
+    // manifest's declared 'photos' field name, so grab EVERY file part, not just
+    // form.getAll('photos').
+    const files: File[] = []
+    const parts: string[] = []
+    for (const [key, value] of form.entries()) {
+      if (value instanceof File) {
+        parts.push(`${key}:file(${value.type || '?'},${value.size}b)`)
+        if (value.size > 0) files.push(value)
+      } else {
+        parts.push(`${key}:text`)
+      }
+    }
+    got = parts.join(' ') || 'empty'
     for (const file of files) {
       const ext = (file.name.includes('.') ? file.name.split('.').pop() : undefined) || MIME_EXT[file.type] || 'jpg'
       const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
@@ -31,8 +48,8 @@ export async function POST(req: NextRequest) {
         urls.push(data.publicUrl)
       }
     }
-  } catch {
-    // fall through — redirect to the form regardless
+  } catch (e) {
+    got = 'error:' + (e instanceof Error ? e.message : 'unknown')
   }
 
   const target = new URL('/admin/ideas', req.url)
@@ -50,8 +67,9 @@ export async function POST(req: NextRequest) {
     }
   } else {
     // A bare redirect (no query) looks identical to "nothing happened" on the
-    // phone, so signal the failure explicitly.
+    // phone, so signal the failure explicitly and include what arrived.
     target.searchParams.set('share', 'fail')
+    target.searchParams.set('got', got.slice(0, 140))
   }
   return NextResponse.redirect(target, 303)
 }

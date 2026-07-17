@@ -50,7 +50,7 @@ function parseBullets(bullets: string): Fields {
   return f
 }
 
-export default function IdeasManager({ initial, sharedImages = [], shareFailed = false, sharedEditId = '' }: { initial: PostIdea[]; sharedImages?: string[]; shareFailed?: boolean; sharedEditId?: string }) {
+export default function IdeasManager({ initial, sharedImages = [], shareFailed = false, sharedEditId = '', shareGot = '' }: { initial: PostIdea[]; sharedImages?: string[]; shareFailed?: boolean; sharedEditId?: string; shareGot?: string }) {
   const [ideas, setIdeas] = useState(initial)
   const [topic, setTopic] = useState('')
   const [fields, setFields] = useState<Fields>(emptyFields())
@@ -166,7 +166,14 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
               ? `✅ 공유한 사진 ${shareBanner.count}장을 아이디어로 저장했어요. 아래에서 주제·내용만 채워 “수정 저장”하세요. 지금 닫아도 목록에 남아 있어요.`
               : shareBanner.kind === 'prefill'
               ? `✅ 공유한 사진 ${shareBanner.count}장을 받았어요. 아래 미리보기 확인 후 주제를 채워 저장하세요.`
-              : '⚠️ 공유는 도착했지만 사진을 받지 못했어요. 아래 “📷 사진 첨부”로 직접 올려주세요.'}
+              : (
+                <>
+                  ⚠️ 공유는 도착했지만 사진을 받지 못했어요. 아래 “📷 사진 첨부”로 직접 올려주세요.
+                  {shareGot && (
+                    <span className="mt-1 block font-mono text-[11px] opacity-70 break-all">받은 데이터: {shareGot}</span>
+                  )}
+                </>
+              )}
           </span>
           <button
             type="button"
@@ -221,7 +228,7 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
 
         {/* Photo attach — uploads to blog storage, stored with the idea */}
         <div className="space-y-2">
-          <label className="block text-xs font-medium text-gray-600">사진 (구글포토·갤러리에서 골라 첨부)</label>
+          <label className="block text-xs font-medium text-gray-600">사진 (갤러리에서 한 장씩 골라 첨부 — 눌러서 계속 추가)</label>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -233,7 +240,10 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
             </button>
             {uploading && <span className="text-xs text-gray-400">업로드 중...</span>}
             {!uploading && images.length > 0 && <span className="text-xs text-gray-400">{images.length}장</span>}
-            <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} />
+            {/* No `multiple`: on Samsung the multi-select variant hides Gallery
+                from the chooser, leaving only My Files + Camera. Single-select
+                keeps Gallery available; tap again to add more (they accumulate). */}
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => onFiles(e.target.files)} />
           </div>
           {images.length > 0 && (
             <div className="flex flex-wrap gap-2">
