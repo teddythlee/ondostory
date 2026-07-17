@@ -54,26 +54,36 @@ export default async function BlogPage({ searchParams }: Props) {
       {posts.length === 0 ? (
         <div className="text-center py-24 text-gray-400">검색 결과가 없습니다.</div>
       ) : view === 'list' ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {posts.map(post => (
-            <Link key={post.id} href={`/blog/${post.slug}`} className="group flex gap-5 items-start">
-              {post.cover_image ? (
-                <img src={post.cover_image} alt={post.title} className="w-28 h-20 object-cover rounded-xl flex-shrink-0" />
-              ) : (
-                <div className="w-28 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex-shrink-0 flex items-center justify-center text-xl text-gray-300">📝</div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-                  {post.category && <span className="text-[11px] text-blue-500 font-medium">{post.category}</span>}
-                  {post.tags.slice(0, 3).map(t => (
-                    <span key={t} className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-500">{t}</span>
-                  ))}
-                  {post.published_at && (
-                    <span className="text-xs text-gray-400">{format(new Date(post.published_at), 'yyyy.MM.dd', { locale: ko })}</span>
-                  )}
+            <Link
+              key={post.id}
+              href={`/blog/${post.slug}`}
+              className="group flex gap-4 sm:gap-5 rounded-2xl border border-gray-100 p-3 hover:border-blue-200 hover:shadow-sm transition-all"
+            >
+              {/* 세로 커버 */}
+              <div className="relative w-24 sm:w-28 aspect-[2/3] flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+                {post.cover_image ? (
+                  <img src={post.cover_image} alt={post.title} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-2xl text-gray-300">📝</div>
+                )}
+                {post.category && (
+                  <span className="absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/45 text-white backdrop-blur-sm">
+                    {post.category}
+                  </span>
+                )}
+              </div>
+              {/* 오른쪽 요약 */}
+              <div className="flex-1 min-w-0 flex flex-col py-1">
+                <h2 className="font-display text-lg sm:text-xl text-gray-900 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2 mb-1.5">
+                  {post.title}
+                </h2>
+                <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed">{post.excerpt}</p>
+                <div className="mt-auto pt-2 flex items-center gap-1.5 font-hand text-base text-gray-400">
+                  {post.published_at && <span>{format(new Date(post.published_at), 'yyyy.MM.dd', { locale: ko })}</span>}
+                  {post.view_count > 0 && (<><span>·</span><span>조회 {post.view_count.toLocaleString()}</span></>)}
                 </div>
-                <h2 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-1 line-clamp-1 leading-snug">{post.title}</h2>
-                <p className="text-sm text-gray-500 line-clamp-2">{post.excerpt}</p>
               </div>
             </Link>
           ))}
@@ -95,7 +105,7 @@ export default async function BlogPage({ searchParams }: Props) {
                   <span key={t} className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-500">{t}</span>
                 ))}
               </div>
-              <h2 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2 line-clamp-2 leading-snug">{post.title}</h2>
+              <h2 className="font-display text-xl text-gray-900 group-hover:text-blue-600 transition-colors mb-2 line-clamp-2 leading-tight">{post.title}</h2>
               <p className="text-sm text-gray-500 line-clamp-2 flex-1">{post.excerpt}</p>
               {post.published_at && (
                 <p className="text-xs text-gray-400 mt-3">{format(new Date(post.published_at), 'yyyy.MM.dd', { locale: ko })}</p>

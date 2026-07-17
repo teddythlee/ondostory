@@ -18,6 +18,10 @@ body {
   font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* 매거진 리스트용 캐주얼 폰트 (layout.tsx에서 Google Fonts로 로드) */
+.font-display { font-family: 'Do Hyeon', 'Noto Sans KR', sans-serif; }
+.font-hand { font-family: 'Nanum Pen Script', 'Noto Sans KR', sans-serif; }
+
 .prose {
   max-width: none;
 }
