@@ -10,7 +10,7 @@ export default function GuidesLayout({ children }: { children: React.ReactNode }
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/blog" className="flex items-center">
-              <Image src="/logo-lockup.png" alt="OndoStory — Warm stories, everyday moments" width={850} height={725} className="h-16 w-auto" priority />
+              <Image src="/logo-lockup.png" alt="OndoStory — Warm stories, everyday moments" width={410} height={349} className="h-16 w-auto" priority />
             </Link>
           </div>
           <nav className="flex items-center gap-5 text-sm text-gray-500">
