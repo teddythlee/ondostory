@@ -230,12 +230,14 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
         <div className="space-y-2">
           <label className="block text-xs font-medium text-gray-600">사진 (갤러리에서 골라 첨부)</label>
           <div className="flex items-center gap-2">
-            {/* Native <label> tap opens the picker directly. A programmatic
-                fileRef.click() inside a standalone WebAPK can drop the rich
-                chooser/gallery and leave only My Files + Camera, so we avoid it. */}
+            {/* Native <label> tap opens the picker. The input is visually hidden
+                with `sr-only` (NOT `display:none`/`hidden`): a display:none file
+                input makes mobile browsers open a degraded chooser (only My Files
+                + Camera, no Gallery). sr-only keeps it rendered so the full
+                gallery picker appears. */}
             <label className={`text-sm border border-gray-200 px-3 py-1.5 rounded-lg cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-50'}`}>
               📷 사진 첨부
-              <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} />
+              <input ref={fileRef} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => onFiles(e.target.files)} />
             </label>
             {uploading && <span className="text-xs text-gray-400">업로드 중...</span>}
             {!uploading && images.length > 0 && <span className="text-xs text-gray-400">{images.length}장</span>}
