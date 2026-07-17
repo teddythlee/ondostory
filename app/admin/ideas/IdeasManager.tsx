@@ -228,17 +228,21 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
 
         {/* Photo attach — uploads to blog storage, stored with the idea */}
         <div className="space-y-2">
-          <label className="block text-xs font-medium text-gray-600">사진 (갤러리에서 골라 첨부)</label>
+          <label className="block text-xs font-medium text-gray-600">📷 사진 (갤러리에서 골라 첨부)</label>
           <div className="flex items-center gap-2">
-            {/* Native <label> tap opens the picker. The input is visually hidden
-                with `sr-only` (NOT `display:none`/`hidden`): a display:none file
-                input makes mobile browsers open a degraded chooser (only My Files
-                + Camera, no Gallery). sr-only keeps it rendered so the full
-                gallery picker appears. */}
-            <label className={`text-sm border border-gray-200 px-3 py-1.5 rounded-lg cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : 'hover:bg-gray-50'}`}>
-              📷 사진 첨부
-              <input ref={fileRef} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => onFiles(e.target.files)} />
-            </label>
+            {/* Plain, VISIBLE native file input — no hiding, no label proxy.
+                Any hidden/clipped input (display:none or sr-only) makes some
+                mobile browsers open a degraded chooser without Gallery. A fully
+                rendered input gets the OS's normal gallery picker. */}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              disabled={uploading}
+              onChange={(e) => onFiles(e.target.files)}
+              className="text-sm text-gray-700 file:mr-3 file:rounded-lg file:border file:border-gray-200 file:bg-gray-50 file:px-3 file:py-1.5 file:text-sm file:cursor-pointer disabled:opacity-50"
+            />
             {uploading && <span className="text-xs text-gray-400">업로드 중...</span>}
             {!uploading && images.length > 0 && <span className="text-xs text-gray-400">{images.length}장</span>}
           </div>
