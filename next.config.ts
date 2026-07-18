@@ -34,6 +34,17 @@ const nextConfig: NextConfig = {
         destination: '/blog/irvine-honey-pig-review',
         permanent: true,
       },
+      // 옛 슬러그 정리 (GSC "crawled - not indexed" 404 → 현재 슬러그로 통합)
+      {
+        source: '/blog/kuku-rice-cooker-black-review',
+        destination: '/blog/cukoo-rice-cooker-black-review',
+        permanent: true,
+      },
+      {
+        source: '/blog/review-of-a-visit-to-la-palma-dami-dental-a-dentist-who-would-like-to-visit-again-even-if-it-s-far-away',
+        destination: '/blog/dami-dental-hawaiian-garden-review',
+        permanent: true,
+      },
     ]
   },
 };
