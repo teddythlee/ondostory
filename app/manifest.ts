@@ -7,9 +7,9 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'ondostory - 온도이야기',
     short_name: 'ondostory',
     description: '삶의 온도는 하나가 아니다. 새로운 온도를 발견하는 라이프스타일 큐레이션.',
-    // Owner's tool — opens straight to the admin capture form (login if needed).
-    // A stray public installer lands on /admin/login, which has a "홈으로" link.
-    start_url: '/admin/ideas',
+    // 공개 앱: 일반 사용자도 설치할 수 있으니 블로그를 기본 진입점으로.
+    // 관리자(오너)는 앱 아이콘 롱프레스 → shortcuts(아이디어 캡처·초안 검토)로 진입.
+    start_url: '/blog',
     scope: '/',
     display: 'standalone',
     background_color: '#ffffff',
