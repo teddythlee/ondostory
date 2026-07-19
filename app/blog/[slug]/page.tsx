@@ -72,6 +72,13 @@ export default async function PostPage({ params }: Props) {
     ],
   }
 
+  // 브랜드가 웹의 다른 곳에서 같은 주체임을 선언(sameAs) → 구글 엔티티 그래프 강화(E-E-A-T).
+  // 실제 존재하는 공식 채널만 넣는다(죽은 링크는 오히려 신호를 깎는다).
+  const social = [
+    'https://www.facebook.com/ondostoryofficial',
+    'https://www.pinterest.com/ondostory',
+  ]
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -81,8 +88,19 @@ export default async function PostPage({ params }: Props) {
     url,
     datePublished: post.published_at,
     dateModified: post.updated_at,
-    author: { '@type': 'Person', name: 'ondostory', url: siteUrl },
-    publisher: { '@type': 'Organization', name: 'ondostory', url: siteUrl },
+    author: {
+      '@type': 'Organization',
+      name: 'OndoStory',
+      url: `${siteUrl}/blog/about`,
+      sameAs: social,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'OndoStory',
+      url: siteUrl,
+      logo: { '@type': 'ImageObject', url: `${siteUrl}/logo.png` },
+      sameAs: social,
+    },
     keywords: post.tags.join(', '),
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
   }
