@@ -278,3 +278,75 @@ export async function getSnapshotSummary(): Promise<{ count: number; latest: str
     .limit(1)
   return { count: count ?? 0, latest: data?.[0]?.period_end ?? null }
 }
+
+export interface SnapshotDelta {
+  query: string
+  prevPosition: number | null
+  curPosition: number | null
+  positionDelta: number | null // 음수 = 순위 개선(숫자 하락)
+  prevImpressions: number
+  curImpressions: number
+  prevClicks: number
+  curClicks: number
+}
+
+export interface SnapshotComparison {
+  hasData: boolean
+  prevPeriod: string | null
+  curPeriod: string | null
+  rows: SnapshotDelta[]
+}
+
+/** 최근 2개 스냅샷 구간을 검색어별로 비교 (콘텐츠 수정 전후 순위 변화). */
+export async function getSnapshotComparison(): Promise<SnapshotComparison> {
+  const { data: all } = await supabaseAdmin
+    .from('gsc_snapshots')
+    .select('period_start, period_end')
+    .eq('dimension', 'query')
+    .order('period_end', { ascending: false })
+
+  const seen = new Set<string>()
+  const distinct: { period_start: string; period_end: string }[] = []
+  for (const p of all || []) {
+    const key = `${p.period_start}~${p.period_end}`
+    if (!seen.has(key)) { seen.add(key); distinct.push(p) }
+    if (distinct.length === 2) break
+  }
+  const label = (p?: { period_start: string; period_end: string }) => (p ? `${p.period_start}~${p.period_end}` : null)
+  if (distinct.length < 2) {
+    return { hasData: false, prevPeriod: label(distinct[0]), curPeriod: null, rows: [] }
+  }
+
+  const [cur, prev] = distinct
+  const rowsFor = async (p: { period_start: string; period_end: string }) => {
+    const { data } = await supabaseAdmin
+      .from('gsc_snapshots')
+      .select('query, clicks, impressions, position')
+      .eq('dimension', 'query')
+      .eq('period_start', p.period_start)
+      .eq('period_end', p.period_end)
+    return (data || []) as { query: string; clicks: number; impressions: number; position: number }[]
+  }
+  const [curRows, prevRows] = await Promise.all([rowsFor(cur), rowsFor(prev)])
+  const curMap = new Map(curRows.map((r) => [r.query, r]))
+  const prevMap = new Map(prevRows.map((r) => [r.query, r]))
+
+  const rows: SnapshotDelta[] = [...new Set([...curMap.keys(), ...prevMap.keys()])].map((q) => {
+    const c = curMap.get(q)
+    const p = prevMap.get(q)
+    return {
+      query: q,
+      prevPosition: p?.position ?? null,
+      curPosition: c?.position ?? null,
+      positionDelta: c && p ? c.position - p.position : null,
+      prevImpressions: p?.impressions ?? 0,
+      curImpressions: c?.impressions ?? 0,
+      prevClicks: p?.clicks ?? 0,
+      curClicks: c?.clicks ?? 0,
+    }
+  })
+  // 순위 개선폭 큰 순(가장 음수) → 그다음 현재 노출 순
+  rows.sort((a, b) => (a.positionDelta ?? 99) - (b.positionDelta ?? 99) || b.curImpressions - a.curImpressions)
+
+  return { hasData: true, prevPeriod: label(prev), curPeriod: label(cur), rows: rows.slice(0, 40) }
+}

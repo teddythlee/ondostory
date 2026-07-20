@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
-import { getGscInsights, getSnapshotSummary, type GscRow, type GscQueryPage } from '@/lib/gsc'
+import { getGscInsights, getSnapshotSummary, getSnapshotComparison, type GscRow, type GscQueryPage, type SnapshotComparison } from '@/lib/gsc'
 import AdminLogoutButton from '../LogoutButton'
 import SnapshotButton from './SnapshotButton'
 
@@ -125,6 +125,7 @@ export default async function TopicsPage() {
 
   const gsc = await getGscInsights()
   const snap = await getSnapshotSummary().catch(() => ({ count: 0, latest: null as string | null }))
+  const cmp: SnapshotComparison = await getSnapshotComparison().catch(() => ({ hasData: false, prevPeriod: null, curPeriod: null, rows: [] }))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -156,6 +157,56 @@ export default async function TopicsPage() {
             {snap.latest ? ` · 최근 구간 ${snap.latest}` : ' · 아직 없음 — "지난 1년 백필"로 시작하세요'}
           </p>
         </div>
+
+        {/* 이전 대비 순위 변화 (스냅샷 비교) */}
+        {!cmp.hasData ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-sm text-gray-400">
+            📈 <span className="text-gray-600 font-medium">순위가 올라갔나 내려갔나</span>는 스냅샷이 <b>2개 이상</b>일 때 표로 나와요.
+            {cmp.prevPeriod ? ` 지금은 1개(${cmp.prevPeriod})뿐 — ` : ' '}
+            “스냅샷 저장”을 한 번 더(며칠~1주 뒤) 누르면 이전↔현재 비교가 생깁니다.
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <h2 className="font-semibold text-sm text-gray-900">📈 이전 대비 순위 변화</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {cmp.prevPeriod} → {cmp.curPeriod} · <span className="text-green-600 font-medium">▲ 초록 = 순위 상승</span>, <span className="text-red-500 font-medium">▼ 빨강 = 하락</span>. 콘텐츠 수정 효과를 여기서 확인.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-gray-100 text-right">
+                    <th className="px-4 py-2 text-xs font-medium text-gray-400 text-left">검색어</th>
+                    <th className="px-4 py-2 text-xs font-medium text-gray-400">이전</th>
+                    <th className="px-4 py-2 text-xs font-medium text-gray-400">현재</th>
+                    <th className="px-4 py-2 text-xs font-medium text-gray-400">변화</th>
+                    <th className="px-4 py-2 text-xs font-medium text-gray-400">노출</th>
+                    <th className="px-4 py-2 text-xs font-medium text-gray-400">클릭</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cmp.rows.map((r) => {
+                    const d = r.positionDelta
+                    const up = d != null && d < -0.1
+                    const down = d != null && d > 0.1
+                    const badge = d == null ? (r.curPosition != null ? '신규' : '이탈') : `${up ? '▲' : down ? '▼' : '–'} ${Math.abs(d).toFixed(1)}`
+                    return (
+                      <tr key={r.query} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-900 line-clamp-1">{r.query}</td>
+                        <td className="px-4 py-3 text-right text-sm text-gray-500 whitespace-nowrap">{r.prevPosition != null ? r.prevPosition.toFixed(1) : '—'}</td>
+                        <td className="px-4 py-3 text-right text-sm text-gray-900 whitespace-nowrap">{r.curPosition != null ? r.curPosition.toFixed(1) : '—'}</td>
+                        <td className={`px-4 py-3 text-right text-sm font-medium whitespace-nowrap ${up ? 'text-green-600' : down ? 'text-red-500' : 'text-gray-400'}`}>{badge}</td>
+                        <td className="px-4 py-3 text-right text-xs text-gray-400 whitespace-nowrap">{r.prevImpressions}→{r.curImpressions}</td>
+                        <td className="px-4 py-3 text-right text-xs text-gray-400 whitespace-nowrap">{r.prevClicks}→{r.curClicks}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {!gsc.configured ? (
           <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-500">
