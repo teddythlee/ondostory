@@ -2,8 +2,9 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
-import { getGscInsights, type GscRow, type GscQueryPage } from '@/lib/gsc'
+import { getGscInsights, getSnapshotSummary, type GscRow, type GscQueryPage } from '@/lib/gsc'
 import AdminLogoutButton from '../LogoutButton'
+import SnapshotButton from './SnapshotButton'
 
 function pct(n: number) {
   return `${(n * 100).toFixed(1)}%`
@@ -123,6 +124,7 @@ export default async function TopicsPage() {
   if (!session) redirect('/admin/login')
 
   const gsc = await getGscInsights()
+  const snap = await getSnapshotSummary().catch(() => ({ count: 0, latest: null as string | null }))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -137,6 +139,7 @@ export default async function TopicsPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link href="/admin" className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">← 전체 목록</Link>
+            <SnapshotButton />
             <AdminLogoutButton />
           </div>
         </div>
@@ -147,6 +150,10 @@ export default async function TopicsPage() {
           <h1 className="text-xl font-bold text-gray-900">주제 발굴 · Search Console</h1>
           <p className="text-sm text-gray-500 mt-1">
             {gsc.range.startDate} ~ {gsc.range.endDate} 검색 성과 기준. 지금 밀면 효율 좋은 기회를 모았어요.
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            저장된 스냅샷 {snap.count.toLocaleString()}행
+            {snap.latest ? ` · 최근 구간 ${snap.latest}` : ' · 아직 없음 — "지난 1년 백필"로 시작하세요'}
           </p>
         </div>
 

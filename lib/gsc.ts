@@ -8,6 +8,8 @@
 // access token"). We sign the JWT assertion ourselves and exchange it at the
 // Google OAuth token endpoint. Env is read inside functions for Workers timing.
 
+import { supabaseAdmin } from './supabase'
+
 const GSC_API = 'https://searchconsole.googleapis.com/webmasters/v3'
 const SCOPE = 'https://www.googleapis.com/auth/webmasters.readonly'
 
@@ -38,7 +40,12 @@ function pemToPkcs8(pem: string): ArrayBuffer {
   return buf.buffer
 }
 
+// Token cache — a backfill makes many API calls in one request; reusing one
+// token keeps subrequest count (Workers limit) and latency down.
+let cachedToken: { token: string; exp: number } | null = null
+
 async function getToken(): Promise<string> {
+  if (cachedToken && cachedToken.exp - 60 > Math.floor(Date.now() / 1000)) return cachedToken.token
   const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}') as {
     client_email?: string
     private_key?: string
@@ -75,6 +82,7 @@ async function getToken(): Promise<string> {
   }
   const data = (await res.json()) as { access_token?: string }
   if (!data.access_token) throw new Error('no access_token in token response')
+  cachedToken = { token: data.access_token, exp: now + 3600 }
   return data.access_token
 }
 
@@ -184,4 +192,89 @@ export async function getGscInsights(): Promise<GscInsights> {
       error: err instanceof Error ? err.message : 'GSC query failed',
     }
   }
+}
+
+// ── 스냅샷 저장 (추세 · 시즌/YoY 비교용) ─────────────────────────────────
+// GSC는 ~16개월 롤링 집계만 준다. 시계열을 남기려면 주기적으로 떠서 저장해야 한다.
+// 보관 16개월(작년 같은 시즌까지 YoY 비교 가능) — 초과분은 저장 때 prune.
+
+const RETENTION_MONTHS = 16
+
+interface StoredRow {
+  taken_on: string
+  period_start: string
+  period_end: string
+  dimension: 'query' | 'query_page'
+  query: string | null
+  page: string | null
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
+async function fetchWindow(startDate: string, endDate: string): Promise<StoredRow[]> {
+  const takenOn = daysAgo(0)
+  const [queries, queryPages] = await Promise.all([
+    query({ startDate, endDate, dimensions: ['query'], rowLimit: 500 }),
+    query({ startDate, endDate, dimensions: ['query', 'page'], rowLimit: 500 }),
+  ])
+  const base = (r: GscRow) => ({
+    taken_on: takenOn, period_start: startDate, period_end: endDate,
+    clicks: r.clicks, impressions: r.impressions, ctr: r.ctr, position: r.position,
+  })
+  return [
+    ...queries.map((r) => ({ ...base(r), dimension: 'query' as const, query: r.keys[0], page: null })),
+    ...queryPages.map((r) => ({ ...base(r), dimension: 'query_page' as const, query: r.keys[0], page: r.keys[1] })),
+  ]
+}
+
+async function persistWindow(startDate: string, endDate: string): Promise<number> {
+  const rows = await fetchWindow(startDate, endDate)
+  if (rows.length === 0) return 0
+  // 같은 구간 재저장 시 중복 방지
+  await supabaseAdmin.from('gsc_snapshots').delete().eq('period_start', startDate).eq('period_end', endDate)
+  const { error } = await supabaseAdmin.from('gsc_snapshots').insert(rows)
+  if (error) throw error
+  return rows.length
+}
+
+async function prune(): Promise<void> {
+  await supabaseAdmin.from('gsc_snapshots').delete().lt('period_end', daysAgo(RETENTION_MONTHS * 31))
+}
+
+/** 최근 28일 구간 스냅샷 1개 저장 (수동 버튼·주간 cron용). */
+export async function snapshotRecent(): Promise<number> {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) throw new Error('GSC not configured')
+  const n = await persistWindow(daysAgo(31), daysAgo(3))
+  await prune()
+  return n
+}
+
+/** 지난 N개월을 월별 스냅샷으로 백필 (시즌·YoY 시작점). */
+export async function snapshotBackfillMonthly(months = 13): Promise<number> {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) throw new Error('GSC not configured')
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const now = new Date()
+  let total = 0
+  for (let i = 1; i <= months; i++) {
+    const first = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const last = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+    const start = `${first.getFullYear()}-${pad(first.getMonth() + 1)}-01`
+    const end = `${last.getFullYear()}-${pad(last.getMonth() + 1)}-${pad(last.getDate())}`
+    total += await persistWindow(start, end)
+  }
+  await prune()
+  return total
+}
+
+/** 저장된 스냅샷 요약. */
+export async function getSnapshotSummary(): Promise<{ count: number; latest: string | null }> {
+  const { count } = await supabaseAdmin.from('gsc_snapshots').select('*', { count: 'exact', head: true })
+  const { data } = await supabaseAdmin
+    .from('gsc_snapshots')
+    .select('period_end')
+    .order('period_end', { ascending: false })
+    .limit(1)
+  return { count: count ?? 0, latest: data?.[0]?.period_end ?? null }
 }
