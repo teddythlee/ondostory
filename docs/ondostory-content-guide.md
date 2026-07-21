@@ -346,6 +346,43 @@
 
 ---
 
+## 13. 발행 인제스트 — `/api/drafts`
+
+외부에서 만든 글을 draft로 넣는 엔드포인트. claude.ai 등은 **글만 쓰고**, 실제 호출은 **네트워크 열린 곳**(Claude Code·터미널·GitHub Action)에서 한다 (claude.ai는 ondostory로 직접 호출 불가).
+
+- **`POST https://www.ondostory.com/api/drafts`**
+- **인증**: `Authorization: Bearer <DRAFT_API_TOKEN>` (wrangler 시크릿 — `wrangler versions secret put`로 설정, OpenNext가 버전 배포라 클래식 `secret put`은 막힘)
+- **`status`는 서버가 무조건 `draft`로 강제** — 이 엔드포인트로는 **발행·색인 불가**. 발행은 사람이 `/admin/drafts`에서.
+
+**payload (JSON):**
+```json
+{
+  "title": "제목 (검색어 앞)",
+  "slug": "kebab-case-slug",
+  "content": "<p>본문 HTML</p><h2>소제목</h2>...",
+  "excerpt": "요약 140~160자",
+  "tags": ["태그1", "태그2", "태그3", "태그4"],
+  "cluster": "settlement",
+  "category": "정보",
+  "meta_title": "SEO 제목",
+  "meta_description": "SEO 설명 140~160자"
+}
+```
+
+**검증 (안 맞으면 400 + 이유 배열):**
+- 필수: `title` · `slug` · `content` · `excerpt`
+- `slug`: 소문자·숫자·하이픈(kebab), 6단어 이하
+- `excerpt`: 140~160 권장(80~200 허용)
+- `category`: `후기`/`정보`만 (선택)
+- `cluster`: 존재하는 key만 (선택) — §6 표 참조
+- `tags`: 배열 1~8개(권장 4~6). **표기는 공백, 하이픈 금지** (§5 — 마이그레이션으로 정규화된 규칙)
+- `content`: **HTML 문자열**(마크다운 X). `[사진: ...]` 마커는 텍스트 그대로 둔다(img 태그 넣지 않음).
+- 성공: `201 {ok, id, slug, status:"draft", admin_url}` → `/admin/drafts`에 뜬다.
+
+**주의**: `status`는 payload에 넣어도 무시된다(항상 draft). **이미지 파일은 안 받는다** — 본문엔 `[사진:]` 마커만, 실제 이미지는 사람이 에디터에서 채운다(§8).
+
+---
+
 ## 부록 A. 보이스 대조 (같은 소재, A→B 개선 감각)
 
 **A (구버전, 개선 전):**
