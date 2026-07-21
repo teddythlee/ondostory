@@ -13,6 +13,7 @@ import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 're
 import ImageModal, { type ImageSize } from './ImageModal'
 import EmbedModal from './EmbedModal'
 import Iframe from './IframeExtension'
+import LevelBadge from './LevelBadgeExtension'
 import { resizeImage } from '@/lib/resizeImage'
 
 const SIZE_MAP: Record<ImageSize, string> = {
@@ -108,6 +109,8 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
         // 표 지원(Table+Row+Header+Cell 번들). resizable=false로 저장 HTML을 깨끗하게(colgroup 미삽입).
         // 이게 없으면 setContent 로드 시 <table> 노드가 통째로 제거된다.
         TableKit.configure({ table: { resizable: false } }),
+        // 대응 수준 배지(<span class="lvl lvl-N">) 보존용. 없으면 저장 시 배경색 배지가 제거됨.
+        LevelBadge,
         Placeholder.configure({ placeholder: '글을 작성하세요...' }),
       ],
       content,

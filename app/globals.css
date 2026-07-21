@@ -40,11 +40,22 @@ body {
 .prose a { color: #3b82f6; text-decoration: underline; }
 .prose img { max-width: 100%; border-radius: 0.5rem; margin: 1rem auto; }
 .prose hr { border: none; border-top: 1px solid #e5e7eb; margin: 2rem 0; }
-/* 표: 래퍼 없이 raw <table>만으로 모바일 가로 스크롤 처리(GitHub 방식) — 에디터 왕복에도 안전. */
-.prose table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.9rem; line-height: 1.6; }
-.prose th, .prose td { border: 1px solid #e5e7eb; padding: 0.5rem 0.7rem; text-align: left; vertical-align: top; }
-.prose th { background: #f9fafb; font-weight: 600; white-space: nowrap; }
-.prose tbody tr:nth-child(even) { background: #fafafa; }
+/* 표: 촘촘·깔끔(온도스토리 부위도 톤). 래퍼 없이 raw <table>만으로 모바일 가로 스크롤(GitHub 방식)
+   + 라운드 프레임. 무거운 격자 대신 가로선만, 헤더 muted, 첫 열 강조. 에디터 왕복에도 안전. */
+.prose table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-collapse: separate; border-spacing: 0; margin: 1.25rem 0; font-size: 0.85rem; line-height: 1.45; border: 1px solid #e8eaed; border-radius: 0.6rem; }
+.prose th, .prose td { padding: 0.42rem 0.95rem; text-align: left; vertical-align: middle; border-bottom: 1px solid #f1f2f4; }
+.prose thead th { font-weight: 500; color: #6b7280; background: transparent; border-bottom: 1px solid #e5e7eb; }
+.prose td { color: #4b5563; }
+.prose td:first-child { font-weight: 600; color: #1f2937; }
+.prose tbody tr:last-child td { border-bottom: none; }
+.prose tbody tr:hover td { background: #f9fafb; }
+/* 대응 수준 배지(pill) — LevelBadge 확장이 <span class="lvl lvl-N">을 보존. 1 진초록 … 5 빨강. */
+.prose .lvl { display: inline-block; font-size: 0.72rem; font-weight: 600; line-height: 1.35; padding: 0.1rem 0.55rem; border-radius: 999px; white-space: nowrap; letter-spacing: -0.01em; }
+.prose .lvl-1 { background: #2e7d32; color: #fff; }
+.prose .lvl-2 { background: #e4f3e6; color: #2c7a30; }
+.prose .lvl-3 { background: #fbedd8; color: #b16816; }
+.prose .lvl-4 { background: #eef0f3; color: #5b6472; }
+.prose .lvl-5 { background: #fbe6e3; color: #b23a2b; }
 .prose .embed-wrapper { position: relative; width: 100%; max-width: 100%; margin: 1.5rem auto; aspect-ratio: 16 / 9; }
 .prose .embed-wrapper iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0.5rem; }
 
