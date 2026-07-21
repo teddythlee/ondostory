@@ -51,6 +51,12 @@ const nextConfig: NextConfig = {
         destination: '/blog/sports-physical-exer-irvine',
         permanent: true,
       },
+      // car 클러스터 → settlement 병합 (허브 URL 통합)
+      {
+        source: '/guides/car',
+        destination: '/guides/settlement',
+        permanent: true,
+      },
     ]
   },
 };
