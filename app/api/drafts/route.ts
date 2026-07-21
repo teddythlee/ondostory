@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
   const category = body.category == null ? null : str(body.category)
   const cluster = str(body.cluster) || null
   const tags = Array.isArray(body.tags) ? body.tags.map((t) => String(t).trim()).filter(Boolean) : null
+  const metaDesc = str(body.meta_description)
 
   // 3) 검증 (온도스토리 규칙)
   const errors: string[] = []
@@ -53,6 +54,8 @@ export async function POST(req: NextRequest) {
   if (category !== null && !CATEGORIES.has(category)) errors.push("category는 '후기' 또는 '정보'만")
   if (body.tags != null && tags === null) errors.push('tags는 문자열 배열이어야 함')
   if (tags && (tags.length < 1 || tags.length > 8)) errors.push(`tags ${tags.length}개 — 1~8개(권장 4~6)`)
+  if (metaDesc && metaDesc.length > 200) errors.push(`meta_description ${metaDesc.length}자 — 155자 이내 권장(최대 200)`)
+  if (metaDesc && excerpt && metaDesc === excerpt) errors.push('meta_description를 excerpt와 똑같이 복붙 금지 — 다르게 쓰거나 meta_description을 비워라')
 
   if (cluster) {
     const clusters = await getClustersAdmin().catch(() => [])
@@ -76,7 +79,7 @@ export async function POST(req: NextRequest) {
       category,
       cluster,
       meta_title: str(body.meta_title) || undefined,
-      meta_description: str(body.meta_description) || undefined,
+      meta_description: metaDesc || undefined,
       cover_image: str(body.cover_image) || undefined,
       status: 'draft',
     }
