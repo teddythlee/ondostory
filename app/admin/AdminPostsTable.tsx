@@ -92,13 +92,14 @@ export default function AdminPostsTable({ posts, clusters }: { posts: PostMeta[]
         <table className="w-full table-fixed min-w-[720px]">
           <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
             <tr>
-              <th className="px-6 py-3 text-left w-[40%]">제목</th>
+              <th className="px-6 py-3 text-left w-[34%]">제목</th>
               {clusterMode ? (
                 <th className="px-4 py-3 text-left w-[26%]">클러스터</th>
               ) : (
                 <th className="px-4 py-3 text-left w-[18%]">태그</th>
               )}
               <th className="px-4 py-3 text-left w-[11%]">상태</th>
+              {!clusterMode && <th className="px-4 py-3 text-right w-[8%]">글자수</th>}
               {!clusterMode && <th className="px-4 py-3 text-right w-[8%]">조회수</th>}
               <th className="px-4 py-3 text-left w-[10%]">날짜</th>
               <th className="px-4 py-3 text-right w-[15%]">작업</th>
@@ -140,6 +141,9 @@ export default function AdminPostsTable({ posts, clusters }: { posts: PostMeta[]
                     {post.status === 'published' ? '발행됨' : '임시저장'}
                   </span>
                 </td>
+                {!clusterMode && (
+                  <td className="px-4 py-4 text-sm text-gray-500 text-right whitespace-nowrap">{(post.content_chars ?? 0).toLocaleString()}</td>
+                )}
                 {!clusterMode && (
                   <td className="px-4 py-4 text-sm text-gray-500 text-right whitespace-nowrap">{post.view_count ?? 0}</td>
                 )}

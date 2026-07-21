@@ -133,6 +133,8 @@ export default function PostEditor({ post, clusters = [] }: Props) {
     if (res.ok) router.push('/admin')
   }
 
+  const bodyCharCount = content.replace(/<[^>]+>/g, '').replace(/\s/g, '').length
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
@@ -203,6 +205,9 @@ export default function PostEditor({ post, clusters = [] }: Props) {
             </button>
           </div>
           <RichEditor ref={editorRef} content={content} onChange={setContent} title={title} />
+          <p className="text-xs text-gray-400 text-right pr-1">
+            글자수 {bodyCharCount.toLocaleString()}자 <span className="text-gray-300">(공백 제외)</span>
+          </p>
         </div>
 
         {/* Sidebar - sticky, follows scroll */}

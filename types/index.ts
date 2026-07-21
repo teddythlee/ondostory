@@ -19,6 +19,8 @@ export interface Post {
   category: string | null
   cluster: string | null
   view_count: number
+  /** 공백·HTML 제거 후 글자 수 (DB 생성 컬럼). 목록·에디터 글자수 표시용. */
+  content_chars: number
 }
 
 /**
