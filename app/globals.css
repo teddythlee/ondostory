@@ -40,6 +40,11 @@ body {
 .prose a { color: #3b82f6; text-decoration: underline; }
 .prose img { max-width: 100%; border-radius: 0.5rem; margin: 1rem auto; }
 .prose hr { border: none; border-top: 1px solid #e5e7eb; margin: 2rem 0; }
+/* 표: 래퍼 없이 raw <table>만으로 모바일 가로 스크롤 처리(GitHub 방식) — 에디터 왕복에도 안전. */
+.prose table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.9rem; line-height: 1.6; }
+.prose th, .prose td { border: 1px solid #e5e7eb; padding: 0.5rem 0.7rem; text-align: left; vertical-align: top; }
+.prose th { background: #f9fafb; font-weight: 600; white-space: nowrap; }
+.prose tbody tr:nth-child(even) { background: #fafafa; }
 .prose .embed-wrapper { position: relative; width: 100%; max-width: 100%; margin: 1.5rem auto; aspect-ratio: 16 / 9; }
 .prose .embed-wrapper iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 0.5rem; }
 

@@ -8,6 +8,7 @@ import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
+import { TableKit } from '@tiptap/extension-table'
 import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import ImageModal, { type ImageSize } from './ImageModal'
 import EmbedModal from './EmbedModal'
@@ -104,6 +105,9 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
         Link.configure({ openOnClick: false }),
         Image.configure({ HTMLAttributes: { class: 'rounded-lg' } }),
         Iframe,
+        // 표 지원(Table+Row+Header+Cell 번들). resizable=false로 저장 HTML을 깨끗하게(colgroup 미삽입).
+        // 이게 없으면 setContent 로드 시 <table> 노드가 통째로 제거된다.
+        TableKit.configure({ table: { resizable: false } }),
         Placeholder.configure({ placeholder: '글을 작성하세요...' }),
       ],
       content,
@@ -232,6 +236,16 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
             <ToolbarButton onClick={() => setShowImageModal(true)} title="이미지">🖼️</ToolbarButton>
             <ToolbarButton onClick={() => setShowEmbedModal(true)} title="임베드 (지도·유튜브)">🗺️</ToolbarButton>
             <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} title="구분선">—</ToolbarButton>
+            <ToolbarButton onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="표 삽입">▦</ToolbarButton>
+            {editor.isActive('table') && (
+              <>
+                <ToolbarButton onClick={() => editor.chain().focus().addRowAfter().run()} title="행 추가">+행</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().addColumnAfter().run()} title="열 추가">+열</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().deleteRow().run()} title="행 삭제">−행</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().deleteColumn().run()} title="열 삭제">−열</ToolbarButton>
+                <ToolbarButton onClick={() => editor.chain().focus().deleteTable().run()} title="표 삭제">✕표</ToolbarButton>
+              </>
+            )}
             <div className="w-px h-5 bg-gray-200 mx-1" />
             <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="되돌리기">↩</ToolbarButton>
             <ToolbarButton onClick={() => editor.chain().focus().redo().run()} title="다시실행">↪</ToolbarButton>
