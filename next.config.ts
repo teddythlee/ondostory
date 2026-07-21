@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
         destination: '/blog/dami-dental-hawaiian-garden-review',
         permanent: true,
       },
+      // 축구팀 신체검사 글: 발행 후 슬러그 변경(us-high-school-soccer-team → sports-physical-exer-irvine)
+      {
+        source: '/blog/us-high-school-soccer-team',
+        destination: '/blog/sports-physical-exer-irvine',
+        permanent: true,
+      },
     ]
   },
 };
