@@ -56,6 +56,8 @@ export const metadata: Metadata = {
     'google-adsense-account': 'ca-pub-3702232308312218',
     // Pinterest 도메인 인증(RSS/도메인 클레임용)
     'p:domain_verify': 'cdb17249bc45ff473c87c627b80b20d6',
+    // 네이버 서치어드바이저 사이트 인증
+    'naver-site-verification': '39fb77a8b87d7fa3b1ed3a0fdb261492c4d19856',
   },
 }
 
