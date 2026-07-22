@@ -54,6 +54,8 @@ export const metadata: Metadata = {
   },
   other: {
     'google-adsense-account': 'ca-pub-3702232308312218',
+    // Pinterest 도메인 인증(RSS/도메인 클레임용)
+    'p:domain_verify': 'cdb17249bc45ff473c87c627b80b20d6',
   },
 }
 
@@ -61,7 +63,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" className="h-full antialiased">
       <head>
-        <link rel="alternate" type="application/rss+xml" title="ondostory RSS" href="/rss.xml" />
+        {/* RSS 자동발견 링크(절대 URL). 레이아웃 head라 모든 페이지에 렌더됨
+            — metadata.alternates는 /blog가 canonical로 덮어써서 사라지므로 여기서 고정. */}
+        <link rel="alternate" type="application/rss+xml" title="ondostory RSS" href={`${siteUrl}/rss.xml`} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
