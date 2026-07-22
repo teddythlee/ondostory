@@ -158,6 +158,26 @@ export default async function TopicsPage() {
           </p>
         </div>
 
+        {/* 총 노출 요약 — "얼마나 노출되나"를 한눈에 (최근 90일 사이트 전체 합) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-500 mb-1">총 노출</p>
+            <p className="text-2xl font-bold text-gray-900">{gsc.totals.impressions.toLocaleString()}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-500 mb-1">총 클릭</p>
+            <p className="text-2xl font-bold text-gray-900">{gsc.totals.clicks.toLocaleString()}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-500 mb-1">CTR</p>
+            <p className="text-2xl font-bold text-gray-900">{pct(gsc.totals.ctr)}</p>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs text-gray-500 mb-1">평균 순위</p>
+            <p className="text-2xl font-bold text-gray-900">{gsc.totals.position > 0 ? gsc.totals.position.toFixed(1) : '—'}</p>
+          </div>
+        </div>
+
         {/* 이전 대비 순위 변화 (스냅샷 비교) */}
         {!cmp.hasData ? (
           <div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-sm text-gray-400">

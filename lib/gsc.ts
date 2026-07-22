@@ -135,6 +135,8 @@ export interface GscQueryPage {
 export interface GscInsights {
   configured: boolean
   range: { startDate: string; endDate: string }
+  /** Site-wide totals for the range (GSC aggregate row, no dimensions). */
+  totals: { clicks: number; impressions: number; ctr: number; position: number }
   /** Queries sitting at positions ~8–20: one nudge from page 1. */
   opportunities: GscRow[]
   /** Pages with impressions but weak CTR: title/meta rewrite candidates. */
@@ -145,19 +147,25 @@ export interface GscInsights {
 }
 
 const emptyRange = () => ({ startDate: daysAgo(90), endDate: daysAgo(3) })
+const ZERO_TOTALS = { clicks: 0, impressions: 0, ctr: 0, position: 0 }
 
 export async function getGscInsights(): Promise<GscInsights> {
   const range = emptyRange()
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-    return { configured: false, range, opportunities: [], lowCtrPages: [], queryPages: [] }
+    return { configured: false, range, totals: ZERO_TOTALS, opportunities: [], lowCtrPages: [], queryPages: [] }
   }
 
   try {
-    const [queries, pages, qp] = await Promise.all([
+    const [totalsRows, queries, pages, qp] = await Promise.all([
+      query({ ...range, dimensions: [] }),
       query({ ...range, dimensions: ['query'] }),
       query({ ...range, dimensions: ['page'] }),
       query({ ...range, dimensions: ['query', 'page'] }),
     ])
+    const t = totalsRows[0]
+    const totals = t
+      ? { clicks: t.clicks, impressions: t.impressions, ctr: t.ctr, position: t.position }
+      : ZERO_TOTALS
 
     const opportunities = queries
       .filter((r) => r.position >= 8 && r.position <= 20.5)
@@ -181,11 +189,12 @@ export async function getGscInsights(): Promise<GscInsights> {
       .sort((a, b) => b.impressions - a.impressions)
       .slice(0, 40)
 
-    return { configured: true, range, opportunities, lowCtrPages, queryPages }
+    return { configured: true, range, totals, opportunities, lowCtrPages, queryPages }
   } catch (err) {
     return {
       configured: true,
       range,
+      totals: ZERO_TOTALS,
       opportunities: [],
       lowCtrPages: [],
       queryPages: [],
