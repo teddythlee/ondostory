@@ -83,6 +83,19 @@ export async function getAllPostsAdminMeta(): Promise<PostMeta[]> {
   return data || []
 }
 
+// 고정 페이지(About/Contact/Privacy 등)는 공개 목록·RSS에선 빠지지만 admin에선 편집돼야 한다.
+// 아티클 목록과 섞지 않도록 별도로 반환한다.
+export async function getPagesAdminMeta(): Promise<PostMeta[]> {
+  const { data, error } = await supabaseAdmin
+    .from('posts')
+    .select(POST_META_COLUMNS)
+    .in('slug', PAGE_SLUGS)
+    .order('slug', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
 // 초안 검토 큐: 미발행 글만, 본문 포함(마커 개수를 세야 하므로). 발행글 본문은 읽지 않는다.
 export async function getDraftsAdmin(): Promise<Post[]> {
   const { data, error } = await supabaseAdmin
@@ -127,12 +140,17 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
 export async function updatePost(id: string, input: Partial<CreatePostInput>): Promise<Post> {
   const updates: Record<string, unknown> = { ...input, updated_at: new Date().toISOString() }
 
+  const existing = await getPostByIdAdmin(id)
+
+  // 발행(=색인)된 글의 슬러그는 변경 불가. 요청에 slug가 와도 무시한다(색인 보호, 프론트 잠금의 이중 방어).
+  // 슬러그를 꼭 바꿔야 하면 next.config.ts에 308 리다이렉트를 걸고 DB에서 직접 변경한다.
+  if (existing?.status === 'published' && 'slug' in updates) {
+    delete updates.slug
+  }
+
   // Set published_at when first published
-  if (input.status === 'published') {
-    const existing = await getPostByIdAdmin(id)
-    if (existing && !existing.published_at) {
-      updates.published_at = new Date().toISOString()
-    }
+  if (input.status === 'published' && existing && !existing.published_at) {
+    updates.published_at = new Date().toISOString()
   }
 
   const { data, error } = await supabaseAdmin

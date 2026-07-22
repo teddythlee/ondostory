@@ -88,11 +88,11 @@ export default async function PostPage({ params }: Props) {
     url,
     datePublished: post.published_at,
     dateModified: post.updated_at,
+    // 저자는 실명 Person(디스커버 E-E-A-T ↑). About 페이지가 저자 소개(누가·왜)를 담는다.
     author: {
-      '@type': 'Organization',
-      name: 'OndoStory',
+      '@type': 'Person',
+      name: 'Teddy Lee',
       url: `${siteUrl}/blog/about`,
-      sameAs: social,
     },
     publisher: {
       '@type': 'Organization',

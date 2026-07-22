@@ -28,6 +28,9 @@ export default function PostEditor({ post, clusters = [] }: Props) {
   const [message, setMessage] = useState('')
   const [slugEdited, setSlugEdited] = useState(!!post)
   const [translating, setTranslating] = useState(false)
+  // 발행(=색인)된 글의 슬러그는 고정. 바꾸면 색인이 꼬이고 유입이 끊긴다.
+  // (불가피하면 next.config.ts에 308 리다이렉트를 걸고 DB에서 직접 바꾼다.)
+  const slugLocked = post?.status === 'published'
   const editorRef = useRef<RichEditorHandle>(null)
 
   useEffect(() => {
@@ -92,7 +95,8 @@ export default function PostEditor({ post, clusters = [] }: Props) {
     const shouldPublish = publishNow !== undefined ? publishNow : published
     const body = {
       title,
-      slug,
+      // 발행글 슬러그는 색인 보호를 위해 원본 고정(입력이 잠겨 있어도 이중 방어).
+      slug: slugLocked ? post!.slug : slug,
       excerpt,
       content,
       cover_image: coverImage || null,
@@ -226,25 +230,33 @@ export default function PostEditor({ post, clusters = [] }: Props) {
             <div>
               <label className="block text-xs text-gray-500 mb-1">
                 URL 슬러그 {translating && <span className="text-blue-400">번역 중...</span>}
+                {slugLocked && <span className="text-gray-400">🔒 발행글 고정</span>}
               </label>
               <div className="flex gap-1">
                 <input
                   type="text"
                   value={slug}
                   onChange={(e) => { setSlug(e.target.value); setSlugEdited(true) }}
-                  disabled={translating}
+                  disabled={translating || slugLocked}
+                  readOnly={slugLocked}
+                  title={slugLocked ? '발행(색인)된 글이라 슬러그를 바꿀 수 없습니다. 바꾸려면 리다이렉트 필요.' : undefined}
                   className="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 font-mono disabled:opacity-50"
                 />
-                <button
-                  type="button"
-                  onClick={() => { setSlugEdited(false); generateSlugFromTitle(title) }}
-                  disabled={translating || !title}
-                  title="제목으로 슬러그 재생성"
-                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 hover:bg-gray-50 disabled:opacity-40"
-                >
-                  ↺
-                </button>
+                {!slugLocked && (
+                  <button
+                    type="button"
+                    onClick={() => { setSlugEdited(false); generateSlugFromTitle(title) }}
+                    disabled={translating || !title}
+                    title="제목으로 슬러그 재생성"
+                    className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    ↺
+                  </button>
+                )}
               </div>
+              {slugLocked && (
+                <p className="text-[11px] text-gray-400 mt-1">색인된 URL이라 슬러그 고정. 꼭 바꿔야 하면 리다이렉트를 걸어야 한다.</p>
+              )}
             </div>
           </div>
 

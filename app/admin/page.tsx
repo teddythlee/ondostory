@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
-import { getAllPostsAdminMeta } from '@/lib/posts'
+import { getAllPostsAdminMeta, getPagesAdminMeta } from '@/lib/posts'
 import { getClustersAdmin } from '@/lib/clusters'
 import AdminLogoutButton from './LogoutButton'
 import AdminPostsTable from './AdminPostsTable'
@@ -11,9 +11,10 @@ export default async function AdminPage() {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
-  const [posts, clusters] = await Promise.all([
+  const [posts, clusters, pages] = await Promise.all([
     getAllPostsAdminMeta().catch(() => []),
     getClustersAdmin().catch(() => []),
+    getPagesAdminMeta().catch(() => []),
   ])
   const drafts = posts.filter((p) => p.status !== 'published')
 
@@ -91,6 +92,24 @@ export default async function AdminPage() {
         </div>
 
         <AdminPostsTable posts={posts} clusters={clusters} />
+
+        {pages.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-sm font-semibold text-gray-500 mb-2">페이지 (About·개인정보 등 — 슬러그 고정)</h2>
+            <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+              {pages.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/admin/posts/${p.id}`}
+                  className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="text-sm text-gray-900">{p.title}</span>
+                  <span className="text-xs text-gray-400 font-mono">/{p.slug} · 수정 →</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   )
