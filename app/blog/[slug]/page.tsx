@@ -89,10 +89,12 @@ export default async function PostPage({ params }: Props) {
     datePublished: post.published_at,
     dateModified: post.updated_at,
     // 저자는 실명 Person(디스커버 E-E-A-T ↑). About 페이지가 저자 소개(누가·왜)를 담는다.
+    // sameAs: 저자가 운영하는 프로필을 연결해 엔티티(저자 정체성)를 묶는다.
     author: {
       '@type': 'Person',
       name: 'Teddy Lee',
       url: `${siteUrl}/blog/about`,
+      sameAs: social,
     },
     publisher: {
       '@type': 'Organization',
@@ -130,11 +132,18 @@ export default async function PostPage({ params }: Props) {
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
           {post.title}
         </h1>
-{post.published_at && (
-          <time className="text-sm text-gray-400">
-            {format(new Date(post.published_at), 'yyyy년 M월 d일 (EEEE)', { locale: ko })}
-          </time>
-        )}
+        <div className="text-sm text-gray-400 flex flex-wrap items-center gap-x-2">
+          {/* 저자 표기(byline) — 구글은 스키마를 페이지에 보이는 내용과 교차확인한다(E-E-A-T). */}
+          <Link href="/blog/about" className="text-gray-600 hover:text-gray-900 font-medium">Teddy Lee</Link>
+          {post.published_at && (
+            <>
+              <span aria-hidden>·</span>
+              <time dateTime={post.published_at}>
+                {format(new Date(post.published_at), 'yyyy년 M월 d일', { locale: ko })}
+              </time>
+            </>
+          )}
+        </div>
       </div>
 
       <article
