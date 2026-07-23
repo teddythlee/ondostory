@@ -203,6 +203,26 @@ export async function getGscInsights(): Promise<GscInsights> {
   }
 }
 
+// 관리자 글 목록용: 페이지(URL)별 노출·순위 맵 (slug → metrics), 최근 90일.
+export async function getGscPageMap(): Promise<
+  Record<string, { impressions: number; clicks: number; position: number }>
+> {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) return {}
+  try {
+    const rows = await query({ ...emptyRange(), dimensions: ['page'] })
+    const map: Record<string, { impressions: number; clicks: number; position: number }> = {}
+    for (const r of rows) {
+      const m = (r.keys[0] || '').match(/\/blog\/([^/?#]+)/)
+      if (!m) continue
+      const slug = decodeURIComponent(m[1])
+      map[slug] = { impressions: r.impressions, clicks: r.clicks, position: r.position }
+    }
+    return map
+  } catch {
+    return {}
+  }
+}
+
 // ── 스냅샷 저장 (추세 · 시즌/YoY 비교용) ─────────────────────────────────
 // GSC는 ~16개월 롤링 집계만 준다. 시계열을 남기려면 주기적으로 떠서 저장해야 한다.
 // 보관 16개월(작년 같은 시즌까지 YoY 비교 가능) — 초과분은 저장 때 prune.

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
 import { getAllPostsAdminMeta, getPagesAdminMeta } from '@/lib/posts'
 import { getClustersAdmin } from '@/lib/clusters'
+import { getGscPageMap } from '@/lib/gsc'
 import AdminLogoutButton from './LogoutButton'
 import AdminPostsTable from './AdminPostsTable'
 
@@ -11,10 +12,11 @@ export default async function AdminPage() {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
-  const [posts, clusters, pages] = await Promise.all([
+  const [posts, clusters, pages, gscBySlug] = await Promise.all([
     getAllPostsAdminMeta().catch(() => []),
     getClustersAdmin().catch(() => []),
     getPagesAdminMeta().catch(() => []),
+    getGscPageMap().catch(() => ({})),
   ])
   const drafts = posts.filter((p) => p.status !== 'published')
 
@@ -91,7 +93,7 @@ export default async function AdminPage() {
           </Link>
         </div>
 
-        <AdminPostsTable posts={posts} clusters={clusters} />
+        <AdminPostsTable posts={posts} clusters={clusters} gscBySlug={gscBySlug} />
 
         {pages.length > 0 && (
           <section className="mt-10">

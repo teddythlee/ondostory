@@ -7,7 +7,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { PostMeta, Cluster } from '@/types'
 
-export default function AdminPostsTable({ posts, clusters }: { posts: PostMeta[]; clusters: Cluster[] }) {
+export default function AdminPostsTable({ posts, clusters, gscBySlug = {} }: { posts: PostMeta[]; clusters: Cluster[]; gscBySlug?: Record<string, { impressions: number; clicks: number; position: number }> }) {
   const router = useRouter()
   const [clusterMode, setClusterMode] = useState(false)
   const [managing, setManaging] = useState(false)
@@ -89,7 +89,7 @@ export default function AdminPostsTable({ posts, clusters }: { posts: PostMeta[]
         </div>
       ) : (
         <div className="overflow-x-auto">
-        <table className="w-full table-fixed min-w-[720px]">
+        <table className="w-full table-fixed min-w-[880px]">
           <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
             <tr>
               <th className="px-6 py-3 text-left w-[34%]">제목</th>
@@ -100,8 +100,10 @@ export default function AdminPostsTable({ posts, clusters }: { posts: PostMeta[]
               )}
               <th className="px-4 py-3 text-left w-[11%]">상태</th>
               {!clusterMode && <th className="px-4 py-3 text-right w-[8%]">글자수</th>}
-              {!clusterMode && <th className="px-4 py-3 text-right w-[8%]">조회수</th>}
-              <th className="px-4 py-3 text-left w-[10%]">날짜</th>
+              {!clusterMode && <th className="px-4 py-3 text-right w-[7%]">조회수</th>}
+              {!clusterMode && <th className="px-4 py-3 text-right w-[7%]" title="최근 90일 GSC 노출수">노출</th>}
+              {!clusterMode && <th className="px-4 py-3 text-right w-[7%]" title="최근 90일 GSC 평균 순위(낮을수록 상위)">순위</th>}
+              <th className="px-4 py-3 text-left w-[9%]">날짜</th>
               <th className="px-4 py-3 text-right w-[15%]">작업</th>
             </tr>
           </thead>
@@ -146,6 +148,18 @@ export default function AdminPostsTable({ posts, clusters }: { posts: PostMeta[]
                 )}
                 {!clusterMode && (
                   <td className="px-4 py-4 text-sm text-gray-500 text-right whitespace-nowrap">{post.view_count ?? 0}</td>
+                )}
+                {!clusterMode && (
+                  <td className="px-4 py-4 text-sm text-gray-500 text-right whitespace-nowrap">
+                    {gscBySlug[post.slug] ? gscBySlug[post.slug].impressions.toLocaleString() : '—'}
+                  </td>
+                )}
+                {!clusterMode && (
+                  <td className="px-4 py-4 text-sm text-right whitespace-nowrap">
+                    {gscBySlug[post.slug]
+                      ? <span className="font-medium text-gray-900">{gscBySlug[post.slug].position.toFixed(1)}</span>
+                      : <span className="text-gray-400">—</span>}
+                  </td>
                 )}
                 <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
                   {format(new Date(post.created_at), 'yy.MM.dd', { locale: ko })}
