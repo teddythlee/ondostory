@@ -42,7 +42,7 @@ body {
 .prose hr { border: none; border-top: 1px solid #e5e7eb; margin: 2rem 0; }
 /* 표: 촘촘·깔끔(온도스토리 부위도 톤). 래퍼 없이 raw <table>만으로 모바일 가로 스크롤(GitHub 방식)
    + 라운드 프레임. 무거운 격자 대신 가로선만, 헤더 muted, 첫 열 강조. 에디터 왕복에도 안전. */
-.prose table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-collapse: separate; border-spacing: 0; margin: 1.25rem 0; font-size: 0.85rem; line-height: 1.45; border: 1px solid #e8eaed; border-radius: 0.6rem; }
+.prose table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-collapse: separate; border-spacing: 0; margin: 1.25rem auto; font-size: 0.85rem; line-height: 1.45; border: 1px solid #e8eaed; border-radius: 0.6rem; }
 .prose th, .prose td { padding: 0.42rem 0.95rem; text-align: left; vertical-align: middle; border-bottom: 1px solid #f1f2f4; }
 .prose thead th { font-weight: 500; color: #6b7280; background: transparent; border-bottom: 1px solid #e5e7eb; }
 .prose td { color: #4b5563; }
