@@ -7,7 +7,7 @@ const PAGE_SLUGS = ['about', 'contact', 'privacy-policy', 'terms', 'disclaimer']
 // content는 글 하나가 수십 KB라, 전체 글을 select('*')로 통째로 읽으면 전송량·메모리가
 // 폭증한다(35개 코퍼스를 매번 다 읽던 게 과부하의 원인). posts 컬럼에서 content만 뺀 목록.
 const POST_META_COLUMNS =
-  'id,title,slug,excerpt,cover_image,published,published_at,created_at,updated_at,tags,meta_title,meta_description,category,view_count,cluster,status,content_chars'
+  'id,title,slug,excerpt,cover_image,published,published_at,created_at,updated_at,tags,meta_title,meta_description,category,view_count,cluster,status,content_chars,social_hook'
 
 export async function getPublishedPosts(): Promise<PostMeta[]> {
   const { data, error } = await supabase
