@@ -67,6 +67,12 @@ export default async function AdminPage() {
               미디어
             </Link>
             <Link
+              href="/admin/social"
+              className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              스레드
+            </Link>
+            <Link
               href="/admin/posts/new"
               className="bg-gray-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
             >

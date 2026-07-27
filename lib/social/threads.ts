@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase' // lazy Proxy — createClient() 호출 안 함
+import { getPostByIdAdmin } from '@/lib/posts'
 
 // Buffer 비공개 GraphQL. 공식 REST가 아니라 예고 없이 바뀔 수 있음 → social_posts 실패 모니터링 필수.
 const BUFFER_ENDPOINT = 'https://api.buffer.com'
@@ -83,4 +84,46 @@ export async function pushToThreads(post: {
       .update({ status: 'failed', error: String(e).slice(0, 500) })
       .match({ post_id: post.id, platform: 'threads' })
   }
+}
+
+export interface FailedSocialPost {
+  id: string
+  post_id: string
+  text: string
+  status: string
+  error: string | null
+  created_at: string
+  post: { title: string; slug: string } | null
+}
+
+// 어드민 재시도 화면용: 실패했거나(failed) Buffer 응답 전에 멈춘(pending) 스레드 게시 목록.
+export async function getStuckThreadsPosts(): Promise<FailedSocialPost[]> {
+  const { data, error } = await supabaseAdmin
+    .from('social_posts')
+    .select('id, post_id, text, status, error, created_at, post:posts(title, slug)')
+    .eq('platform', 'threads')
+    .in('status', ['failed', 'pending'])
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as unknown as FailedSocialPost[]
+}
+
+/**
+ * 재시도: 기존 행(unique 잠금)을 지우고 다시 게시한다.
+ * 주의: dispatched(성공) 행에는 쓰지 않는다 — 중복 게시가 된다. 실패/멈춤 행에만.
+ */
+export async function retryThreadsPost(
+  postId: string
+): Promise<{ ok: boolean; status: string; error?: string }> {
+  await supabaseAdmin.from('social_posts').delete().match({ post_id: postId, platform: 'threads' })
+  const post = await getPostByIdAdmin(postId)
+  if (!post) return { ok: false, status: 'missing', error: '글을 찾을 수 없음' }
+  await pushToThreads({ id: post.id, slug: post.slug, social_hook: post.social_hook })
+  const { data } = await supabaseAdmin
+    .from('social_posts')
+    .select('status, error')
+    .match({ post_id: postId, platform: 'threads' })
+    .maybeSingle()
+  if (!data) return { ok: false, status: 'skipped', error: '훅 없음 또는 Buffer 미설정 — 게시 안 됨' }
+  return { ok: data.status === 'dispatched', status: data.status, error: data.error ?? undefined }
 }
