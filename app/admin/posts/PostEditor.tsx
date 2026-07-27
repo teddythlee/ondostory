@@ -23,6 +23,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
   const [cluster, setCluster] = useState(post?.cluster || '')
   const [metaTitle, setMetaTitle] = useState(post?.meta_title || '')
   const [metaDescription, setMetaDescription] = useState(post?.meta_description || '')
+  const [socialHook, setSocialHook] = useState(post?.social_hook || '')
   const [published, setPublished] = useState(post?.status === 'published')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -105,6 +106,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
       cluster: cluster || null,
       meta_title: metaTitle || null,
       meta_description: metaDescription || null,
+      social_hook: socialHook.trim() || null,
       status: shouldPublish ? 'published' : 'draft',
     }
 
@@ -360,6 +362,41 @@ export default function PostEditor({ post, clusters = [] }: Props) {
             </div>
             <div className="text-xs text-gray-400 bg-blue-50 rounded-lg p-2">
               💡 발행 시 Google Indexing API에 자동으로 크롤링 요청이 전송됩니다.
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+            <h3 className="font-semibold text-sm text-gray-700">스레드 게시</h3>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">
+                훅 <span className="text-gray-400">(궁금하게 여는 3줄 · 결말은 남겨두기)</span>
+              </label>
+              <textarea
+                value={socialHook}
+                onChange={(e) => setSocialHook(e.target.value)}
+                placeholder={'전환점 한 줄 — 몰랐다가 겪은 그 순간\n궁금하게 만드는 한 줄 — 답은 주지 않기\n여백 한 줄'}
+                rows={4}
+                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-400 resize-none"
+              />
+              <div className="flex justify-between text-xs mt-1">
+                <span className={socialHook.trim() ? 'text-gray-400' : 'text-amber-600'}>
+                  {socialHook.trim() ? '발행 시 스레드에 게시됩니다' : '비어 있음 — 스레드 게시 없음'}
+                </span>
+                <span
+                  className={
+                    socialHook.length > 400
+                      ? 'text-red-500 font-medium'
+                      : socialHook.length > 200
+                        ? 'text-amber-600'
+                        : 'text-gray-400'
+                  }
+                >
+                  {socialHook.length}자
+                </span>
+              </div>
+            </div>
+            <div className="text-xs text-gray-400 bg-blue-50 rounded-lg p-2">
+              💡 발행 링크(/blog/슬러그)가 자동으로 붙습니다. 훅에 URL은 넣지 마세요.
             </div>
           </div>
 
