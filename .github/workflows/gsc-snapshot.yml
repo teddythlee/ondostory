@@ -1,0 +1,28 @@
+# 주 1회 서치콘솔 스냅샷.
+#
+# GSC API는 ~16개월 롤링 집계만 준다. 순위 추세·콘텐츠 수정 효과·시즌 비교를 보려면
+# 주기적으로 떠서 gsc_snapshots에 남겨야 한다(lib/gsc.ts 주석 참고).
+# 지금까지 /admin/topics 에서 사람이 버튼을 눌러야 쌓였는데, 이걸 자동으로 돌린다.
+
+name: gsc-snapshot
+
+on:
+  schedule:
+    - cron: '30 13 * * 1' # 매주 월요일 UTC 13:30
+  workflow_dispatch:
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 스냅샷 저장
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.ondostory.com' }}
+          DISCOVERY_TOKEN: ${{ secrets.DISCOVERY_TOKEN }}
+        run: |
+          code=$(curl -sS -o response.json -w '%{http_code}' \
+            -X POST "$SITE_URL/api/gsc/snapshot" \
+            -H "Authorization: Bearer $DISCOVERY_TOKEN" \
+            --max-time 120)
+          echo "HTTP $code"; cat response.json; echo
+          [ "$code" = "200" ] || { echo "::error::스냅샷 실패 (HTTP $code)"; exit 1; }

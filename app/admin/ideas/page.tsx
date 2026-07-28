@@ -40,6 +40,8 @@ export default async function IdeasPage({ searchParams }: { searchParams: Promis
           <h1 className="text-xl font-bold text-gray-900">아이디어 (글감)</h1>
           <p className="text-sm text-gray-500 mt-1">
             겪은 것만 불릿으로 던지고 <strong>사진도 함께 첨부</strong>하세요(구글포토·갤러리에서 골라 올리면 됨). 나중에 Claude가 이걸 읽어 <strong>사진까지 넣은</strong> 초안으로 만들어 <Link href="/admin/drafts" className="text-blue-500 hover:underline">초안 검토 큐</Link>에 넣어줍니다.
+            <br />
+            뭘 쓸지 막막하면 <Link href="/admin/discover" className="text-blue-500 hover:underline">글감 발굴</Link>에서 매일 쌓이는 후보를 보세요.
           </p>
         </div>
         <IdeasManager initial={ideas} sharedImages={sharedImages} shareFailed={shareFailed} sharedEditId={sharedEditId} shareGot={shareGot} />

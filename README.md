@@ -1,36 +1,20 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OndoStory Editor v1
 
-## Getting Started
+## Install
+Copy the contents of this package into the root of the OndoStory website project.
 
-First, run the development server:
+Expected structure:
+- `docs/ondostory-content-guide.md`
+- `.claude/agents/ondostory-editor.md`
+- `.claude/skills/ondostory-blog/`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Because `.claude` is a hidden folder on macOS, enable hidden files in Finder with `Command + Shift + .` if needed.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Use
+Open Claude Code from the website project root and ask it to use the OndoStory Editor, for example:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`OndoStory Editor를 사용해서 미국 거주 한국인을 위한 검색 기회가 높은 글 주제 10개를 조사해.`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+or
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`OndoStory Editor를 사용해서 [주제] 글을 기획하고 초안을 작성해.`

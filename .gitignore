@@ -46,3 +46,6 @@ next-env.d.ts
 .wrangler/
 .dev.vars
 cloudflare-env.d.ts
+
+# Claude Code 로컬 설정(머신별 권한 등) — 커밋 금지
+.claude/settings.local.json

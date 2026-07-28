@@ -1,0 +1,56 @@
+# 매일 글감 발굴.
+#
+# 왜 GitHub Actions인가 —
+#   이 사이트는 Cloudflare Workers(OpenNext)에 올라간다. Workers Cron Trigger를 쓰려면
+#   OpenNext가 생성하는 worker 엔트리에 scheduled 핸들러를 얹어야 해서 배포 경로를 건드리게 된다.
+#   여기서 하는 일은 "하루 한 번 URL 하나를 친다"가 전부라, 돌아가는 사이트에는 손을 안 대는
+#   외부 크론이 가장 무리가 없다. 실패하면 Actions 로그에 남고, 사이트는 아무 영향이 없다.
+#
+# 준비물 (레포 Settings → Secrets and variables → Actions):
+#   DISCOVERY_TOKEN  아무 긴 랜덤 문자열. 같은 값을 Cloudflare에도 넣는다:
+#                    npx wrangler secret put DISCOVERY_TOKEN
+#   SITE_URL         (선택) 기본값 https://www.ondostory.com
+
+name: discover-ideas
+
+on:
+  schedule:
+    # UTC 13:00 = 미국 태평양시 06:00 (서머타임 때 05:00). 아침에 확인하기 좋게.
+    - cron: '0 13 * * *'
+  workflow_dispatch: # 수동 실행 버튼
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 글감 발굴 실행
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.ondostory.com' }}
+          DISCOVERY_TOKEN: ${{ secrets.DISCOVERY_TOKEN }}
+        run: |
+          if [ -z "$DISCOVERY_TOKEN" ]; then
+            echo "::error::DISCOVERY_TOKEN 시크릿이 없습니다"
+            exit 1
+          fi
+          echo "POST $SITE_URL/api/ideas/discover"
+          code=$(curl -sS -o response.json -w '%{http_code}' \
+            -X POST "$SITE_URL/api/ideas/discover?suggest=16&community=8&limit=60" \
+            -H "Authorization: Bearer $DISCOVERY_TOKEN" \
+            --max-time 120)
+          echo "HTTP $code"
+          cat response.json
+          echo
+          if [ "$code" != "200" ]; then
+            echo "::error::발굴 실패 (HTTP $code)"
+            exit 1
+          fi
+
+      - name: 요약
+        if: always()
+        run: |
+          if [ -f response.json ]; then
+            echo "### 글감 발굴 결과" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat response.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-24",
+  "schema": {
+    "title": "string",
+    "slug": "string",
+    "category": "string",
+    "cluster": "string|null",
+    "primaryKeyword": "string",
+    "secondaryKeywords": "string[]",
+    "status": "draft|ready|published|updated|archived",
+    "publishedAt": "YYYY-MM-DD|null",
+    "updatedAt": "YYYY-MM-DD|null",
+    "sourceUrls": "string[]",
+    "internalUrls": "string[]",
+    "notes": "string"
+  },
+  "articles": [
+    {
+      "title": "캘리포니아 운전면허 갱신 | 온라인 갱신·eLearning·필기시험 면제 조건",
+      "slug": "california-dmv-license-renewal",
+      "category": "정보",
+      "cluster": "settlement",
+      "primaryKeyword": "캘리포니아 운전면허 갱신",
+      "secondaryKeywords": [
+        "온라인 갱신",
+        "DMV eLearning",
+        "필기시험 면제",
+        "온라인 지식시험 한국어",
+        "70세 이상 운전면허",
+        "REAL ID",
+        "신분 변경 운전면허"
+      ],
+      "status": "published",
+      "publishedAt": "2026-07-24",
+      "updatedAt": "2026-07-24",
+      "sourceUrls": [
+        "https://www.dmv.ca.gov/portal/driver-education-and-safety/online-learning-and-tests/",
+        "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/renew-your-driver-license-dl-or-identification-card-id/",
+        "https://www.dmv.ca.gov/portal/news-and-media/news-releases/written-knowledge-test-requirement-eliminated-for-most-california-drivers-license-renewals/",
+        "https://www.dmv.ca.gov/portal/news-and-media/more-californians-fulfilling-dmv-testing-requirement-online/",
+        "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/real-id/"
+      ],
+      "internalUrls": [
+        "/blog/california-dmv-vehicle-registration-address-change"
+      ],
+      "notes": "1인칭 경험(H1B→영주권 신분 변경, 플러튼 DMV 예약 2달 대기, eLearning 선택·소요, 시력검사 선글라스 일화) 포함. 미확인 항목: 온라인 지식시험 35개 언어에 한국어 포함 여부. 스캔형(빠른 요약+비교표). 커버=AI 일러스트."
+    }
+  ]
+}

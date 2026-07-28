@@ -5,6 +5,7 @@ import { getAdminSession } from '@/lib/auth'
 import { getAllPostsAdminMeta, getPagesAdminMeta } from '@/lib/posts'
 import { getClustersAdmin } from '@/lib/clusters'
 import { getGscPageMap } from '@/lib/gsc'
+import { getCandidates } from '@/lib/candidates'
 import AdminLogoutButton from './LogoutButton'
 import AdminPostsTable from './AdminPostsTable'
 
@@ -12,11 +13,12 @@ export default async function AdminPage() {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
-  const [posts, clusters, pages, gscBySlug] = await Promise.all([
+  const [posts, clusters, pages, gscBySlug, candidates] = await Promise.all([
     getAllPostsAdminMeta().catch(() => []),
     getClustersAdmin().catch(() => []),
     getPagesAdminMeta().catch(() => []),
     getGscPageMap().catch(() => ({})),
+    getCandidates('new').catch(() => []),
   ])
   const drafts = posts.filter((p) => p.status !== 'published')
 
@@ -35,6 +37,12 @@ export default async function AdminPage() {
               className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
             >
               아이디어
+            </Link>
+            <Link
+              href="/admin/discover"
+              className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              글감 큐{candidates.length > 0 && <span className="ml-1 text-blue-600 font-semibold">{candidates.length}</span>}
             </Link>
             <Link
               href="/admin/topics"
