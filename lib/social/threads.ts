@@ -4,6 +4,10 @@ import { getPostByIdAdmin } from '@/lib/posts'
 // Buffer 비공개 GraphQL. 공식 REST가 아니라 예고 없이 바뀔 수 있음 → social_posts 실패 모니터링 필수.
 const BUFFER_ENDPOINT = 'https://api.buffer.com'
 
+// ⏸ 스레드 자동 게시 일시 정지 — Buffer에 연결된 Threads 계정이 정지됨(2026-07-27).
+// 재개하려면 false로 바꾸고 main 푸시(배포). pushToThreads·retry 모두 즉시 no-op이 된다.
+const THREADS_PUBLISH_PAUSED = true
+
 // Buffer의 CreatePostInput(우리 TS 타입과 이름만 같음, 별개). shareNow=즉시 게시로 검증됨(2026-07).
 const CREATE_POST = `mutation CreatePost($input: CreatePostInput!) {
   createPost(input: $input) {
@@ -23,6 +27,7 @@ export async function pushToThreads(post: {
   slug: string
   social_hook: string | null
 }): Promise<void> {
+  if (THREADS_PUBLISH_PAUSED) return // ⏸ 위 상수로 전체 정지 (계정 정지)
   if (!post.social_hook?.trim()) return
   // 미설정이면 no-op: 행을 만들지 않아, 빈 설정으로 배포해도 글이 오염되지 않는다.
   const token = process.env.BUFFER_ACCESS_TOKEN
