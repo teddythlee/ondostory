@@ -19,7 +19,7 @@ function extractSrc(input: string): string | null {
 
   // 유튜브 시청 URL → 임베드 URL 변환
   const yt = candidate.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([\w-]{11})/
   )
   if (yt) return `https://www.youtube.com/embed/${yt[1]}`
 
