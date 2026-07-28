@@ -39,6 +39,7 @@ interface PostRow {
   slug: string
   cluster: string | null
   status: string
+  updated_at: string
 }
 
 /** 제목 뭉치와 대조해 이미 다룬 주제인지 대략 판정 */
@@ -68,7 +69,7 @@ export async function runDiscovery(opts: DiscoveryOptions = {}): Promise<Discove
   // ── 기존 글 로드 (중복 판정 · 클러스터 카운트 · 슬러그 매칭에 모두 쓰인다) ──
   const { data: postsData, error: postsErr } = await supabaseAdmin
     .from('posts')
-    .select('title, slug, cluster, status')
+    .select('title, slug, cluster, status, updated_at')
   if (postsErr) throw postsErr
   const posts = (postsData || []) as PostRow[]
   const published = posts.filter((p) => p.status === 'published')
@@ -76,10 +77,15 @@ export async function runDiscovery(opts: DiscoveryOptions = {}): Promise<Discove
   const clusterBySlug = new Map(posts.map((p) => [p.slug, p.cluster]))
   const publishedByCluster: Record<string, number> = {}
   for (const p of published) if (p.cluster) publishedByCluster[p.cluster] = (publishedByCluster[p.cluster] || 0) + 1
+  // 최근 42일 안에 수정된 글 — 리라이트(gsc_lowctr) 후보에서 뺀다(제목 변경 효과 측정 시간 확보)
+  const recentCutoff = new Date(Date.now() - 42 * 24 * 60 * 60 * 1000).toISOString()
+  const recentlyModified = new Set(
+    published.filter((p) => p.updated_at && p.updated_at > recentCutoff).map((p) => p.slug)
+  )
 
   // ── 소스 4개 병렬 수집 ────────────────────────────────────────────
   const settled = await Promise.allSettled([
-    collectFromGsc(publishedSlugs),
+    collectFromGsc(publishedSlugs, recentlyModified),
     collectFromSuggest(suggestCalls),
     collectFromNaver(naverCalls),
     collectFromCommunity(communityProbes),

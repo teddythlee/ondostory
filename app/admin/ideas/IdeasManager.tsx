@@ -148,6 +148,15 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
     if (res.ok) setIdeas((prev) => prev.filter((i) => i.id !== id))
   }
 
+  async function setStatus(id: string, status: PostIdea['status']) {
+    const res = await fetch(`/api/ideas/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    if (res.ok) setIdeas((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)))
+  }
+
   const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-blue-400'
 
   return (
@@ -315,6 +324,11 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button onClick={() => startEdit(idea)} className="text-xs text-gray-500 hover:text-gray-900">수정</button>
+                    {idea.status === 'skipped' ? (
+                      <button onClick={() => setStatus(idea.id, 'pending')} className="text-xs text-gray-500 hover:text-gray-900">되돌리기</button>
+                    ) : (
+                      <button onClick={() => setStatus(idea.id, 'skipped')} className="text-xs text-gray-500 hover:text-gray-900">보류</button>
+                    )}
                     <button onClick={() => remove(idea.id)} className="text-xs text-red-400 hover:text-red-600">삭제</button>
                   </div>
                 </div>

@@ -16,7 +16,8 @@ function slugOf(url: string): string | null {
 }
 
 export async function collectFromGsc(
-  publishedSlugs: Set<string>
+  publishedSlugs: Set<string>,
+  recentlyModified: Set<string> = new Set()
 ): Promise<{ candidates: RawCandidate[]; note: string }> {
   const insights = await getGscInsights()
   if (!insights.configured) return { candidates: [], note: 'GSC 미설정 (GOOGLE_SERVICE_ACCOUNT_KEY 없음)' }
@@ -57,10 +58,17 @@ export async function collectFromGsc(
   }
 
   // ── gsc_lowctr: 노출은 있는데 CTR이 낮은 기존 페이지 ────────────────
+  // 단, 최근 수정된 글은 뺀다 — 방금 제목·메타를 바꿨다면 효과가 쌓일 시간을 줘야지,
+  // 또 바꾸면 이전 변경의 성과를 영영 측정 못 한다.
+  let skippedRecent = 0
   for (const row of insights.lowCtrPages) {
     const url = row.keys[0]
     const slug = slugOf(url)
     if (!slug || !publishedSlugs.has(slug)) continue
+    if (recentlyModified.has(slug)) {
+      skippedRecent++
+      continue
+    }
     out.push({
       topic: `[리라이트] ${slug} — 제목·메타 다시 쓰기`,
       cluster: null, // orchestrator가 실제 글의 cluster로 채운다
@@ -75,6 +83,6 @@ export async function collectFromGsc(
 
   return {
     candidates: out,
-    note: `${insights.range.startDate}~${insights.range.endDate} 기준 · 기회 검색어 ${insights.opportunities.length} · 저CTR 페이지 ${insights.lowCtrPages.length}`,
+    note: `${insights.range.startDate}~${insights.range.endDate} 기준 · 기회 검색어 ${insights.opportunities.length} · 저CTR 페이지 ${insights.lowCtrPages.length}${skippedRecent ? ` (최근수정 ${skippedRecent} 제외)` : ''}`,
   }
 }
