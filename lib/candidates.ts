@@ -70,3 +70,55 @@ export async function dismissCandidate(id: string): Promise<void> {
     .eq('id', id)
   if (error) throw error
 }
+
+/**
+ * 여러 후보를 "우산 글 하나"로 묶어 채택한다(near-duplicate 자기잠식 방지).
+ * 우산 = 가장 일반적인(짧은) 주제. 나머지 검색어는 그 글의 섹션 target으로 골격에 붙는다.
+ * 그룹 전원이 adopted로 바뀌어 큐에서 사라진다.
+ */
+export async function adoptGroup(ids: string[], cluster?: string | null): Promise<{ ideaId: string }> {
+  const { data: rows, error } = await supabaseAdmin.from('idea_candidates').select('*').in('id', ids)
+  if (error) throw error
+  const cands = (rows || []) as IdeaCandidate[]
+  if (cands.length === 0) throw new Error('후보를 찾을 수 없습니다')
+  if (cands.length === 1) return adoptCandidate(cands[0].id, cluster)
+
+  // 우산 = 가장 짧은(일반적인) 주제. 동점이면 최고점.
+  const head = [...cands].sort((a, b) => a.topic.length - b.topic.length || b.score - a.score)[0]
+  const siblings = cands.filter((c) => c.id !== head.id)
+  const resolvedCluster = cluster !== undefined ? cluster : head.cluster
+
+  const { data: posts } = await supabaseAdmin
+    .from('posts')
+    .select('title, slug, cluster')
+    .eq('status', 'published')
+    .eq('cluster', resolvedCluster ?? '')
+    .limit(8)
+
+  const { topic, bullets } = buildOutline({ ...head, cluster: resolvedCluster }, (posts || []) as RelatedPost[])
+
+  // 형제 검색어를 한 글의 섹션으로 — 별도 글로 쪼개지 않는다
+  const subLines = siblings
+    .map((s) => `  - ${(s.query || s.topic).replace(/^\[[^\]]+\]\s*/, '')}`)
+    .join('\n')
+  const merged = `${bullets}\n\n■ 함께 커버할 검색어 (한 글 안 섹션으로 — 별도 글 X, 자기잠식 방지)\n${subLines}`
+
+  const idea = await createIdea({ topic, bullets: merged })
+
+  const { error: updErr } = await supabaseAdmin
+    .from('idea_candidates')
+    .update({ status: 'adopted', idea_id: idea.id, cluster: resolvedCluster, updated_at: new Date().toISOString() })
+    .in('id', ids)
+  if (updErr) throw updErr
+
+  return { ideaId: idea.id }
+}
+
+/** 여러 후보를 한 번에 기각. */
+export async function dismissGroup(ids: string[]): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from('idea_candidates')
+    .update({ status: 'dismissed', updated_at: new Date().toISOString() })
+    .in('id', ids)
+  if (error) throw error
+}
