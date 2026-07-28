@@ -7,7 +7,8 @@ import type { IdeaCandidate, DiscoveryRun } from '@/lib/candidates'
 const SOURCE_LABEL: Record<string, string> = {
   gsc_gap: '서치콘솔 기회',
   gsc_lowctr: '저CTR 리라이트',
-  suggest: '자동완성',
+  suggest: '구글 자동완성',
+  naver: '네이버 자동완성',
   community: '커뮤니티',
   internal_gap: '클러스터 갭',
 }
@@ -15,6 +16,7 @@ const SOURCE_STYLE: Record<string, string> = {
   gsc_gap: 'bg-blue-100 text-blue-700',
   gsc_lowctr: 'bg-amber-100 text-amber-700',
   suggest: 'bg-violet-100 text-violet-700',
+  naver: 'bg-green-100 text-green-700',
   community: 'bg-teal-100 text-teal-700',
   internal_gap: 'bg-gray-100 text-gray-600',
 }

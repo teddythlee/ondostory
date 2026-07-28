@@ -39,7 +39,7 @@ export default async function DiscoverPage() {
         <div className="mb-5">
           <h1 className="text-xl font-bold text-gray-900">글감 발굴</h1>
           <p className="text-sm text-gray-500 mt-1">
-            매일 아침 서치콘솔·자동완성·커뮤니티·클러스터 갭에서 글감을 긁어와 점수순으로 쌓습니다.
+            매일 아침 서치콘솔·구글/네이버 자동완성·클러스터 갭에서 글감을 긁어와 점수순으로 쌓습니다.
             채택하면 취재 골격이 붙은 채로 <Link href="/admin/ideas" className="text-blue-500 hover:underline">아이디어</Link>로 넘어갑니다 — 경험은 직접 채우세요.
           </p>
         </div>

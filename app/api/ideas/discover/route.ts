@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
   try {
     const result = await runDiscovery({
       suggestCalls: num('suggest', 16),
-      communityProbes: num('community', 8),
+      naverCalls: num('naver', 12),
+      communityProbes: num('community', 0),
       limit: num('limit', 60),
     })
     return NextResponse.json(result)

@@ -34,7 +34,7 @@ jobs:
           fi
           echo "POST $SITE_URL/api/ideas/discover"
           code=$(curl -sS -o response.json -w '%{http_code}' \
-            -X POST "$SITE_URL/api/ideas/discover?suggest=16&community=8&limit=60" \
+            -X POST "$SITE_URL/api/ideas/discover?suggest=20&naver=12&community=0&limit=60" \
             -H "Authorization: Bearer $DISCOVERY_TOKEN" \
             --max-time 120)
           echo "HTTP $code"

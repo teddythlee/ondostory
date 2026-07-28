@@ -52,6 +52,8 @@ function isQuestion(title: string): boolean {
 
 /** @param maxProbes Workers 서브리퀘스트 예산에 맞춘 조회 수 상한 */
 export async function collectFromCommunity(maxProbes = 8): Promise<{ candidates: RawCandidate[]; note: string }> {
+  if (maxProbes <= 0) return { candidates: [], note: '꺼둠 (community=0)' }
+
   const out: RawCandidate[] = []
   let failed = 0
   const probes = PROBES.slice(0, maxProbes)

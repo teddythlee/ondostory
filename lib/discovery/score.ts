@@ -11,8 +11,9 @@ import type { RawCandidate, ScoredCandidate, CandidateSource } from './types'
 const SOURCE_WEIGHT: Record<CandidateSource, number> = {
   gsc_gap: 1.5, // 내 사이트 실측 — 가장 확실
   gsc_lowctr: 1.3, // 역시 실측이고, 새 글보다 회수 비용이 싸다
+  naver: 1.15, // 독자가 실제로 검색하는 한국어·네이버 신호 — 방향이 가장 맞는 외부 수요
   internal_gap: 1.1, // 구조적으로 항상 옳지만 수요 신호는 없음
-  suggest: 1.0,
+  suggest: 1.0, // 구글 자동완성 — 무난하지만 영어·글로벌 섞임
   community: 0.85, // 영어권 신호라 한국어 검색량과 어긋날 수 있음
 }
 
@@ -24,6 +25,7 @@ function normalizeDemand(source: CandidateSource, demand: number): number {
       // 노출 10회 → 0.33, 100회 → 0.67, 1000회 → 1.0
       return Math.min(1.2, Math.log10(demand + 1) / 3)
     case 'suggest':
+    case 'naver':
       return Math.min(1, demand / 10)
     case 'community':
       return Math.min(1, Math.log10(demand + 1) / 2.5)

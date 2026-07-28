@@ -8,8 +8,9 @@ GitHub Actions (매일 06:00 PT)
    └─ POST /api/ideas/discover  (Bearer DISCOVERY_TOKEN)
         └─ lib/discovery/index.ts  runDiscovery()
              ├─ sources/gsc.ts       서치콘솔 8~20위 기회 검색어 + 저CTR 페이지
-             ├─ sources/suggest.ts   구글 자동완성 롱테일
-             ├─ sources/community.ts 레딧 반복 질문
+             ├─ sources/suggest.ts   구글 자동완성 롱테일 (의미형 + 자모/알파벳 수프)
+             ├─ sources/naver.ts     네이버 자동완성 — 독자가 실제 검색하는 한국어 신호
+             ├─ sources/community.ts 레딧 반복 질문 (기본 off — 클라우드 IP 차단)
              └─ sources/internal.ts  클러스터 배분 계획 대비 부족분
                   → score.ts 로 점수 → idea_candidates 에 upsert
 
@@ -62,9 +63,10 @@ Vercel Cron은 해당 없음(Vercel 배포가 아님). Supabase pg_cron은 pg_ne
 |---|---|---|
 | `gsc_gap` | 가장 높음 (1.5배) | 내 사이트가 8~20위로 노출되는데 클릭이 안 나오는 검색어. 랭킹 글이 이미 있으면 **보강**, 없으면 **신규 글** 후보로 나뉜다. |
 | `gsc_lowctr` | 높음 (1.3배) | 노출 대비 CTR이 낮은 기존 글. 새 글보다 제목·메타 리라이트가 싸다. |
+| `naver` | 높음 (1.15배) | 네이버 자동완성. **독자가 실제 검색하는 한국어 문장** — 방향이 가장 맞는 외부 수요. suggest보다 위. |
 | `internal_gap` | 구조적 (1.1배) | 클러스터 목표 대비 부족분 + 아직 안 쓴 백로그 주제. 바깥 신호가 없는 날에도 나온다. |
-| `suggest` | 보통 (1.0배) | 구글 자동완성 롱테일. 사람들이 실제로 치는 문장. |
-| `community` | 참고 (0.85배) | 레딧 반복 질문. 영어권 신호라 한국어 검색량과 어긋날 수 있다. |
+| `suggest` | 보통 (1.0배) | 구글 자동완성 롱테일(의미형 + 자모/알파벳 수프). 사람들이 실제로 치는 문장. |
+| `community` | **기본 off** (0.85배) | 레딧 반복 질문. 영어권 신호라 한국어 검색량과 어긋나고, 클라우드 IP가 차단당해 꺼둔다. 켜려면 레딧 OAuth 필요. |
 
 ## 점수
 
@@ -93,9 +95,10 @@ how-to로 제시한다. 그래서 자동화는 **사람이 채울 자리를 정�
 ## 운영 중 조절
 
 - **후보가 너무 많다** → `?limit=30`으로 줄인다 (워크플로 curl의 쿼리)
-- **자동완성이 자꾸 실패한다** → `?suggest=8`로 줄이거나 0으로 꺼도 나머지는 돈다
-- **레딧이 계속 차단된다** → `?community=0`. 클라우드 IP 차단이라 재시도해도 소용없다
-- **Workers 서브리퀘스트 한도** → 무료 플랜 50 / 유료 1000. 기본값(suggest 16 + community 8 + GSC 5 + DB)은 무료 한도 안에 든다
+- **자동완성이 자꾸 실패한다** → `?suggest=8` / `?naver=6`으로 줄이거나 0으로 꺼도 나머지는 돈다
+- **네이버가 막힌다** → `?naver=0`. ac.search.naver.com이 클라우드 IP를 막으면 로그의 note에 "네이버 전체 실패"로 남는다. 나머지 소스는 그대로 진행
+- **레딧을 켜고 싶다** → `?community=8`. 단 클라우드 IP 차단이라 레딧 OAuth 없이는 대개 실패한다. 기본은 off
+- **Workers 서브리퀘스트 한도** → 무료 플랜 50 / 유료 1000. 워크플로 기본값(suggest 20 + naver 12 + GSC 5 + DB)은 무료 한도 안에 든다
 - **며칠 연속 잡히는 후보** → `seen_count`가 올라간다. 일시적 유행이 아니라는 뜻이라 우선 채택할 것
 
 ## 파일

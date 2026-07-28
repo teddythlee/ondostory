@@ -8,8 +8,10 @@ import type { RawCandidate } from '../types'
 import { CLUSTER_PLAN } from '../plan'
 
 const ENDPOINT = 'https://suggestqueries.google.com/complete/search'
-// 시드 뒤에 붙여 롱테일을 벌리는 접미사. 질문형이 그대로 글감이 된다.
-const MODIFIERS = ['', ' 방법', ' 비용', ' 준비물', ' 후기', ' 어떻게', ' 얼마', ' 처음']
+// 시드 뒤에 붙여 롱테일을 벌리는 의미형 접미사. 질문형이 그대로 글감이 된다.
+const MODIFIERS = ['', ' 방법', ' 비용', ' 준비물', ' 후기', ' 어떻게', ' 얼마', ' 처음', ' 추천', ' 신청']
+// 자모/알파벳 수프 — 시드 뒤에 한 글자씩 붙여 의미형이 못 잡는 롱테일까지 벌린다.
+const SOUP = ['가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '파', '하', '비', '신', 'a', 's']
 
 async function suggest(term: string): Promise<string[]> {
   const url = `${ENDPOINT}?client=firefox&hl=ko&gl=us&q=${encodeURIComponent(term)}`
@@ -22,22 +24,37 @@ async function suggest(term: string): Promise<string[]> {
   return Array.isArray(data?.[1]) ? data[1] : []
 }
 
-/**
- * 조회할 (클러스터, 검색어) 목록을 라운드로빈으로 펼친다.
- * 접미사 → 시드 → 클러스터 순으로 도니, 예산이 작아도 6개 클러스터가 골고루 잡힌다.
- */
-function buildTerms(): { cluster: string; term: string }[] {
+/** 접미사 목록 → (클러스터, 검색어)를 접미사 → 시드 → 클러스터 순 라운드로빈으로 펼친다. */
+function termsFrom(suffixes: string[]): { cluster: string; term: string }[] {
   const terms: { cluster: string; term: string }[] = []
   const lists = Object.entries(CLUSTER_PLAN).map(([cluster, plan]) => ({ cluster, seeds: plan.seeds }))
   const maxSeeds = Math.max(...lists.map((l) => l.seeds.length))
-  for (const mod of MODIFIERS) {
+  for (const suf of suffixes) {
     for (let s = 0; s < maxSeeds; s++) {
       for (const { cluster, seeds } of lists) {
-        if (seeds[s]) terms.push({ cluster, term: `${seeds[s]}${mod}` })
+        if (seeds[s]) terms.push({ cluster, term: `${seeds[s]}${suf}` })
       }
     }
   }
   return terms
+}
+
+/**
+ * 의미형 접미사(우선)와 자모/알파벳 수프(다양성)를 2:1로 인터리브한다.
+ * 예산이 작아도 의미형이 앞서되 수프도 1/3쯤 airtime을 얻어, 예상 못 한 롱테일까지 벌린다.
+ */
+function buildTerms(): { cluster: string; term: string }[] {
+  const semantic = termsFrom(MODIFIERS)
+  const soup = termsFrom(SOUP.map((c) => ` ${c}`))
+  const out: { cluster: string; term: string }[] = []
+  let i = 0
+  let j = 0
+  while (i < semantic.length || j < soup.length) {
+    if (i < semantic.length) out.push(semantic[i++])
+    if (i < semantic.length) out.push(semantic[i++])
+    if (j < soup.length) out.push(soup[j++])
+  }
+  return out
 }
 
 /**

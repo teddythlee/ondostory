@@ -8,6 +8,7 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import { collectFromGsc } from './sources/gsc'
 import { collectFromSuggest } from './sources/suggest'
+import { collectFromNaver } from './sources/naver'
 import { collectFromCommunity } from './sources/community'
 import { collectFromInternal } from './sources/internal'
 import { scoreCandidate, normalizeKey } from './score'
@@ -16,7 +17,9 @@ import type { RawCandidate, ScoredCandidate, CandidateSource } from './types'
 export interface DiscoveryOptions {
   /** 구글 자동완성 호출 상한 (Workers 서브리퀘스트 예산) */
   suggestCalls?: number
-  /** 레딧 조회 상한 */
+  /** 네이버 자동완성 호출 상한 */
+  naverCalls?: number
+  /** 레딧 조회 상한 (기본 0 — 클라우드 IP 차단이라 꺼둔다) */
   communityProbes?: number
   /** 한 번에 저장할 최대 후보 수 — 점수 상위부터 자른다 */
   limit?: number
@@ -49,7 +52,7 @@ function makeCoverageCheck(posts: PostRow[]) {
 }
 
 export async function runDiscovery(opts: DiscoveryOptions = {}): Promise<DiscoveryResult> {
-  const { suggestCalls = 16, communityProbes = 8, limit = 60 } = opts
+  const { suggestCalls = 16, naverCalls = 12, communityProbes = 0, limit = 60 } = opts
 
   const { data: runRow } = await supabaseAdmin
     .from('idea_discovery_runs')
@@ -78,10 +81,11 @@ export async function runDiscovery(opts: DiscoveryOptions = {}): Promise<Discove
   const settled = await Promise.allSettled([
     collectFromGsc(publishedSlugs),
     collectFromSuggest(suggestCalls),
+    collectFromNaver(naverCalls),
     collectFromCommunity(communityProbes),
     collectFromInternal(),
   ])
-  const names = ['gsc', 'suggest', 'community', 'internal']
+  const names = ['gsc', 'suggest', 'naver', 'community', 'internal']
 
   let raw: RawCandidate[] = []
   settled.forEach((r, i) => {
