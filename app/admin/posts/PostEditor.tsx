@@ -42,8 +42,9 @@ export default function PostEditor({ post, clusters = [] }: Props) {
 
   useEffect(() => {
     const match = content.match(/<img[^>]+src=["']([^"']+)["']/)
-    if (match) setCoverImage(match[1])
-    else setCoverImage('')
+    // 본문 첫 이미지를 커버로 자동 지정. src는 HTML이라 &amp;로 인코딩돼 있으니 날 URL로 디코드해
+    // 저장한다 (커버는 RSS/OG에 raw URL로 쓰여, &amp;면 이중 이스케이프로 핀·소셜 커버가 깨진다 — §8-5).
+    setCoverImage(match ? match[1].replace(/&amp;/g, '&') : '')
   }, [content])
 
   function toSlug(text: string) {
