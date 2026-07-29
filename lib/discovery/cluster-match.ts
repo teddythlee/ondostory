@@ -32,7 +32,9 @@ const RULES: { cluster: string; words: string[] }[] = [
 ]
 
 export function guessCluster(text: string): string | null {
-  const t = (text || '').toLowerCase()
+  // '렌트카/렌터카'는 집 렌트가 아니라 차량 대여다. housing의 '렌트' 규칙에 오분류되지 않게
+  // 신호를 지운다(→ 다른 규칙에도 안 걸리면 null=미분류, 채택 시 사람이 지정).
+  const t = (text || '').toLowerCase().replace(/렌[트터]카/g, ' ')
   let best: { cluster: string; hits: number } | null = null
   for (const rule of RULES) {
     const hits = rule.words.filter((w) => t.includes(w)).length

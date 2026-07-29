@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import type { PostIdea } from '@/lib/ideas'
+import { buildInterviewPaste } from '@/lib/interview-prompt'
 
 const STATUS_STYLE: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -57,6 +58,7 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
   const [images, setImages] = useState<string[]>(sharedImages)
   // Share outcome banner, shown once until dismissed.
   // 'saved'   → photos auto-saved as an idea (opened in edit mode below)
@@ -155,6 +157,17 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
       body: JSON.stringify({ status }),
     })
     if (res.ok) setIdeas((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)))
+  }
+
+  // 프롬프트+골격을 클립보드에 → claude.ai에 붙여넣어 인터뷰 시작
+  async function copyInterview(idea: PostIdea) {
+    try {
+      await navigator.clipboard.writeText(buildInterviewPaste(idea.topic, idea.bullets || ''))
+      setCopiedId(idea.id)
+      setTimeout(() => setCopiedId((c) => (c === idea.id ? null : c)), 2000)
+    } catch {
+      setMsg('복사 실패 — 브라우저 클립보드 권한을 확인하세요')
+    }
   }
 
   const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-blue-400'
@@ -323,6 +336,13 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => copyInterview(idea)}
+                      className="text-xs bg-blue-500 text-white px-2.5 py-1 rounded-lg hover:bg-blue-600"
+                      title="인터뷰 프롬프트+골격 복사 → claude.ai에 붙여넣기"
+                    >
+                      {copiedId === idea.id ? '복사됨 ✓' : 'AI 인터뷰'}
+                    </button>
                     <button onClick={() => startEdit(idea)} className="text-xs text-gray-500 hover:text-gray-900">수정</button>
                     {idea.status === 'skipped' ? (
                       <button onClick={() => setStatus(idea.id, 'pending')} className="text-xs text-gray-500 hover:text-gray-900">되돌리기</button>
