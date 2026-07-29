@@ -12,7 +12,7 @@ const STATUS_STYLE: Record<string, string> = {
   skipped: 'bg-gray-100 text-gray-500',
 }
 const STATUS_LABEL: Record<string, string> = {
-  pending: '대기', processing: '생성 중', done: '초안 생성됨', skipped: '보류',
+  pending: '대기', processing: '생성 중', done: '완료', skipped: '보류',
 }
 
 // Labeled fields so the guidance stays visible while typing.
@@ -59,6 +59,7 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
   const [msg, setMsg] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [showHandled, setShowHandled] = useState(false)
   const [images, setImages] = useState<string[]>(sharedImages)
   // Share outcome banner, shown once until dismissed.
   // 'saved'   → photos auto-saved as an idea (opened in edit mode below)
@@ -171,6 +172,60 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
   }
 
   const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-blue-400'
+
+  // 할 일(대기·생성중)과 처리됨(완료·보류)을 나눠, 처리된 건 접어둔다
+  const active = ideas.filter((i) => i.status === 'pending' || i.status === 'processing')
+  const handled = ideas.filter((i) => i.status === 'done' || i.status === 'skipped')
+
+  const renderRow = (idea: PostIdea) => (
+    <li key={idea.id} className="px-4 py-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-900 truncate">{idea.topic}</span>
+            <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${STATUS_STYLE[idea.status]}`}>
+              {STATUS_LABEL[idea.status]}
+            </span>
+          </div>
+          {idea.bullets && (
+            <p className="text-xs text-gray-500 mt-1 whitespace-pre-wrap line-clamp-3">{idea.bullets}</p>
+          )}
+          {idea.image_urls?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {idea.image_urls.map((url) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={url} src={url} alt="" className="w-12 h-12 object-cover rounded border border-gray-200" />
+              ))}
+            </div>
+          )}
+          {idea.post_id && (
+            <Link href={`/admin/posts/${idea.post_id}`} className="text-xs text-blue-500 hover:underline mt-1 inline-block">
+              → 생성된 초안 보기
+            </Link>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => copyInterview(idea)}
+            className="text-xs bg-blue-500 text-white px-2.5 py-1 rounded-lg hover:bg-blue-600"
+            title="인터뷰 프롬프트+골격 복사 → claude.ai에 붙여넣기"
+          >
+            {copiedId === idea.id ? '복사됨 ✓' : 'AI 인터뷰'}
+          </button>
+          <button onClick={() => startEdit(idea)} className="text-xs text-gray-500 hover:text-gray-900">수정</button>
+          {idea.status === 'done' || idea.status === 'skipped' ? (
+            <button onClick={() => setStatus(idea.id, 'pending')} className="text-xs text-gray-500 hover:text-gray-900">되돌리기</button>
+          ) : (
+            <>
+              <button onClick={() => setStatus(idea.id, 'done')} className="text-xs text-green-600 hover:text-green-700">완료</button>
+              <button onClick={() => setStatus(idea.id, 'skipped')} className="text-xs text-gray-500 hover:text-gray-900">보류</button>
+            </>
+          )}
+          <button onClick={() => remove(idea.id)} className="text-xs text-red-400 hover:text-red-600">삭제</button>
+        </div>
+      </div>
+    </li>
+  )
 
   return (
     <div className="space-y-6">
@@ -299,62 +354,26 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
         </div>
       </div>
 
-      {/* List */}
+      {/* List — 할 일 먼저, 처리됨은 접어서 */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 text-sm font-semibold text-gray-700">
-          아이디어 {ideas.length}개
+          할 일 {active.length}개
         </div>
-        {ideas.length === 0 ? (
-          <p className="px-4 py-10 text-center text-sm text-gray-400">아직 없어요. 위에서 하나 적어보세요.</p>
+        {active.length === 0 ? (
+          <p className="px-4 py-10 text-center text-sm text-gray-400">처리할 아이디어가 없어요. 위에서 적거나 큐에서 채택하세요.</p>
         ) : (
-          <ul className="divide-y divide-gray-100">
-            {ideas.map((idea) => (
-              <li key={idea.id} className="px-4 py-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900 truncate">{idea.topic}</span>
-                      <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${STATUS_STYLE[idea.status]}`}>
-                        {STATUS_LABEL[idea.status]}
-                      </span>
-                    </div>
-                    {idea.bullets && (
-                      <p className="text-xs text-gray-500 mt-1 whitespace-pre-wrap line-clamp-3">{idea.bullets}</p>
-                    )}
-                    {idea.image_urls?.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-1.5">
-                        {idea.image_urls.map((url) => (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img key={url} src={url} alt="" className="w-12 h-12 object-cover rounded border border-gray-200" />
-                        ))}
-                      </div>
-                    )}
-                    {idea.post_id && (
-                      <Link href={`/admin/posts/${idea.post_id}`} className="text-xs text-blue-500 hover:underline mt-1 inline-block">
-                        → 생성된 초안 보기
-                      </Link>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => copyInterview(idea)}
-                      className="text-xs bg-blue-500 text-white px-2.5 py-1 rounded-lg hover:bg-blue-600"
-                      title="인터뷰 프롬프트+골격 복사 → claude.ai에 붙여넣기"
-                    >
-                      {copiedId === idea.id ? '복사됨 ✓' : 'AI 인터뷰'}
-                    </button>
-                    <button onClick={() => startEdit(idea)} className="text-xs text-gray-500 hover:text-gray-900">수정</button>
-                    {idea.status === 'skipped' ? (
-                      <button onClick={() => setStatus(idea.id, 'pending')} className="text-xs text-gray-500 hover:text-gray-900">되돌리기</button>
-                    ) : (
-                      <button onClick={() => setStatus(idea.id, 'skipped')} className="text-xs text-gray-500 hover:text-gray-900">보류</button>
-                    )}
-                    <button onClick={() => remove(idea.id)} className="text-xs text-red-400 hover:text-red-600">삭제</button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <ul className="divide-y divide-gray-100">{active.map(renderRow)}</ul>
+        )}
+        {handled.length > 0 && (
+          <div className="border-t border-gray-100">
+            <button
+              onClick={() => setShowHandled((v) => !v)}
+              className="w-full px-4 py-2.5 text-left text-xs text-gray-500 hover:bg-gray-50"
+            >
+              {showHandled ? '▾' : '▸'} 처리됨 {handled.length}개 (완료·보류)
+            </button>
+            {showHandled && <ul className="divide-y divide-gray-100 opacity-60">{handled.map(renderRow)}</ul>}
+          </div>
         )}
       </div>
     </div>

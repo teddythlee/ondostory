@@ -168,12 +168,14 @@ export async function getGscInsights(): Promise<GscInsights> {
       : ZERO_TOTALS
 
     const opportunities = queries
-      .filter((r) => r.position >= 8 && r.position <= 20.5)
+      // 최소 노출 8회 — 3~4회짜리 잡음은 순위 기회로 안 본다
+      .filter((r) => r.position >= 8 && r.position <= 20.5 && r.impressions >= 8)
       .sort((a, b) => b.impressions - a.impressions)
       .slice(0, 25)
 
     const lowCtrPages = pages
-      .filter((r) => r.impressions >= 5 && r.ctr < 0.05)
+      // 최소 노출 50회 — 이보다 얇으면 CTR이 통계적으로 의미 없어 제목·메타 리라이트할 가치가 없다
+      .filter((r) => r.impressions >= 50 && r.ctr < 0.05)
       .sort((a, b) => b.impressions - a.impressions)
       .slice(0, 25)
 
