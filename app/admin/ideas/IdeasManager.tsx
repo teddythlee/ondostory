@@ -200,7 +200,7 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
           )}
           {idea.post_id && (
             <Link href={`/admin/posts/${idea.post_id}`} className="text-xs text-blue-500 hover:underline mt-1 inline-block">
-              → 생성된 초안 보기
+              → 연결된 글 보기
             </Link>
           )}
         </div>
