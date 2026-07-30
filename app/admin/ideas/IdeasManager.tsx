@@ -15,6 +15,19 @@ const STATUS_LABEL: Record<string, string> = {
   pending: '대기', processing: '생성 중', done: '완료', skipped: '보류',
 }
 
+// 아이디어 종류 — 큐에서 넘어온 topic 접두사로 판별해 큐 뱃지와 UI를 맞춘다.
+function ideaKind(topic: string): { label: string; style: string } {
+  if (topic.startsWith('[보강]')) return { label: '기존 글 보강', style: 'bg-blue-100 text-blue-700' }
+  if (topic.startsWith('[리라이트]')) return { label: '제목·메타 리라이트', style: 'bg-amber-100 text-amber-700' }
+  if (topic.startsWith('[시즌]')) return { label: '시즌/이벤트', style: 'bg-orange-100 text-orange-700' }
+  return { label: '새 글', style: 'bg-green-100 text-green-700' }
+}
+// 보강·리라이트면 골격에 박힌 대상 글 슬러그를 뽑아 링크로 보여준다.
+function targetSlug(bullets: string): string | null {
+  const m = (bullets || '').match(/대상 글: \/blog\/([^\s\n]+)/)
+  return m ? m[1] : null
+}
+
 // Labeled fields so the guidance stays visible while typing.
 // Combined into a single `bullets` text on save; parsed back on edit.
 const FIELDS: { key: string; label: string; multi: boolean; ph: string }[] = [
@@ -177,16 +190,25 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
   const active = ideas.filter((i) => i.status === 'pending' || i.status === 'processing')
   const handled = ideas.filter((i) => i.status === 'done' || i.status === 'skipped')
 
-  const renderRow = (idea: PostIdea) => (
+  const renderRow = (idea: PostIdea) => {
+    const kind = ideaKind(idea.topic)
+    const target = targetSlug(idea.bullets)
+    return (
     <li key={idea.id} className="px-4 py-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-sm font-medium text-gray-900 truncate">{idea.topic}</span>
+            <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${kind.style}`}>{kind.label}</span>
             <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap ${STATUS_STYLE[idea.status]}`}>
               {STATUS_LABEL[idea.status]}
             </span>
           </div>
+          {target && (
+            <Link href={`/blog/${target}`} target="_blank" className="text-xs text-blue-500 hover:underline mt-0.5 inline-block">
+              → 대상 글: {target}
+            </Link>
+          )}
           {idea.bullets && (
             <p className="text-xs text-gray-500 mt-1 whitespace-pre-wrap line-clamp-3">{idea.bullets}</p>
           )}
@@ -225,7 +247,8 @@ export default function IdeasManager({ initial, sharedImages = [], shareFailed =
         </div>
       </div>
     </li>
-  )
+    )
+  }
 
   return (
     <div className="space-y-6">
