@@ -54,10 +54,12 @@ export default function CandidatesManager({
   initial,
   runs,
   clusters,
+  related = {},
 }: {
   initial: IdeaCandidate[]
   runs: DiscoveryRun[]
   clusters: ClusterOpt[]
+  related?: Record<string, { slug: string; title: string }>
 }) {
   const [items, setItems] = useState(initial)
   const [busy, setBusy] = useState<string | null>(null)
@@ -179,6 +181,14 @@ export default function CandidatesManager({
             )}
           </div>
           <p className="text-sm font-medium text-gray-900 break-words">{c.topic}</p>
+          {related[c.id] && (
+            <p className="text-xs text-amber-600 mt-1">
+              ⚠️ 비슷한 발행글:{' '}
+              <Link href={`/blog/${related[c.id].slug}`} target="_blank" className="underline hover:text-amber-700">
+                {related[c.id].title}
+              </Link>
+            </p>
+          )}
           <p className="text-xs text-gray-500 mt-1 leading-relaxed">{c.rationale}</p>
           {typeof c.evidence?.url === 'string' && (
             <a href={c.evidence.url} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline mt-1 inline-block">

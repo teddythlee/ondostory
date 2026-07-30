@@ -31,6 +31,13 @@ export async function getRecentRuns(limit = 7): Promise<DiscoveryRun[]> {
   return (data || []) as DiscoveryRun[]
 }
 
+/** 발행글 제목·슬러그 — 큐에서 "이미 쓴 글과 겹침" 경고에 쓴다 */
+export async function getPublishedTitles(): Promise<{ slug: string; title: string }[]> {
+  const { data, error } = await supabaseAdmin.from('posts').select('slug, title').eq('status', 'published')
+  if (error) throw error
+  return (data || []) as { slug: string; title: string }[]
+}
+
 /**
  * 후보 채택 → 골격이 채워진 post_ideas 생성.
  * cluster를 넘기면 후보의 클러스터를 덮어쓴다(미분류 후보를 채택할 때 사용).

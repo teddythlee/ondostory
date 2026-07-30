@@ -2,20 +2,57 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
-import { getCandidates, getRecentRuns } from '@/lib/candidates'
+import { getCandidates, getRecentRuns, getPublishedTitles } from '@/lib/candidates'
 import { getClustersAdmin } from '@/lib/clusters'
 import AdminLogoutButton from '../LogoutButton'
 import CandidatesManager from './CandidatesManager'
+
+// 후보 vs 발행글 중복 경고: 핵심 토큰(흔한 말 제외)이 2개 이상 겹치면 그 글을 연결한다.
+const RELATED_STOP = new Set(['미국', '캘리포니아', '후기', '방법', '추천', '가격', '비용', '정리', '총정리'])
+function relTokens(s: string): string[] {
+  return (s || '')
+    .replace(/\[[^\]]+\]/g, ' ')
+    .toLowerCase()
+    .replace(/[^가-힣a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((t) => t.length >= 2 && !RELATED_STOP.has(t))
+}
+function findRelatedPost(
+  topic: string,
+  query: string | null,
+  posts: { slug: string; title: string }[]
+): { slug: string; title: string } | null {
+  const ct = relTokens(query || topic)
+  if (ct.length === 0) return null
+  let best: { slug: string; title: string } | null = null
+  let bestN = 1
+  for (const p of posts) {
+    const title = p.title.toLowerCase()
+    const n = ct.filter((t) => title.includes(t)).length
+    if (n >= 2 && n > bestN) {
+      bestN = n
+      best = p
+    }
+  }
+  return best
+}
 
 export default async function DiscoverPage() {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
-  const [candidates, runs, clusters] = await Promise.all([
+  const [candidates, runs, clusters, posts] = await Promise.all([
     getCandidates('new').catch(() => []),
     getRecentRuns(5).catch(() => []),
     getClustersAdmin().catch(() => []),
+    getPublishedTitles().catch(() => []),
   ])
+
+  const related: Record<string, { slug: string; title: string }> = {}
+  for (const c of candidates) {
+    const m = findRelatedPost(c.topic, c.query, posts)
+    if (m) related[c.id] = m
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,6 +84,7 @@ export default async function DiscoverPage() {
           initial={candidates}
           runs={runs}
           clusters={clusters.map((c) => ({ key: c.key, emoji: c.emoji, label: c.nav_label || c.title }))}
+          related={related}
         />
       </main>
     </div>
