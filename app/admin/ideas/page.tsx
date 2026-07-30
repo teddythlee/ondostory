@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
 import { getIdeas } from '@/lib/ideas'
+import { supabaseAdmin } from '@/lib/supabase'
 import AdminLogoutButton from '../LogoutButton'
 import IdeasManager from './IdeasManager'
 
@@ -10,7 +11,15 @@ export default async function IdeasPage({ searchParams }: { searchParams: Promis
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
-  const ideas = await getIdeas().catch(() => [])
+  const allIdeas = await getIdeas().catch(() => [])
+  // 연결된 글이 이미 "발행"된 아이디어는 목록에서 뺀다 — 할 일이 끝났으니(발행된 글이 곧 기록).
+  const linkedPostIds = allIdeas.map((i) => i.post_id).filter((id): id is string => !!id)
+  let publishedIds = new Set<string>()
+  if (linkedPostIds.length) {
+    const { data } = await supabaseAdmin.from('posts').select('id').eq('status', 'published').in('id', linkedPostIds)
+    publishedIds = new Set((data || []).map((p) => p.id as string))
+  }
+  const ideas = allIdeas.filter((i) => !(i.post_id && publishedIds.has(i.post_id)))
   const sp = await searchParams
   const sharedImages = sp.shared ? sp.shared.split(',').filter(Boolean) : []
   const shareFailed = sp.share === 'fail'
