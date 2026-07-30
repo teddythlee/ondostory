@@ -11,6 +11,7 @@ import { collectFromSuggest } from './sources/suggest'
 import { collectFromNaver } from './sources/naver'
 import { collectFromCommunity } from './sources/community'
 import { collectFromInternal } from './sources/internal'
+import { collectFromSeasonal } from './seasonal'
 import { scoreCandidate, normalizeKey } from './score'
 import type { RawCandidate, ScoredCandidate, CandidateSource } from './types'
 
@@ -90,8 +91,9 @@ export async function runDiscovery(opts: DiscoveryOptions = {}): Promise<Discove
     collectFromNaver(naverCalls),
     collectFromCommunity(communityProbes),
     collectFromInternal(),
+    collectFromSeasonal(),
   ])
-  const names = ['gsc', 'suggest', 'naver', 'community', 'internal']
+  const names = ['gsc', 'suggest', 'naver', 'community', 'internal', 'seasonal']
 
   let raw: RawCandidate[] = []
   settled.forEach((r, i) => {
@@ -117,6 +119,7 @@ export async function runDiscovery(opts: DiscoveryOptions = {}): Promise<Discove
   const fresh = raw.filter((c) => {
     if (c.source === 'gsc_lowctr') return true
     if (c.source === 'gsc_gap' && c.evidence?.hasOwnPost) return true
+    if (c.source === 'seasonal') return true // 시즌은 기존 글 있어도 띄운다(갱신/보강 판단은 사람이, ⚠️ 경고로 보임)
     return !isCovered(c.query ?? c.topic)
   })
 

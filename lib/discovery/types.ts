@@ -1,4 +1,4 @@
-export type CandidateSource = 'gsc_gap' | 'gsc_lowctr' | 'suggest' | 'naver' | 'community' | 'internal_gap'
+export type CandidateSource = 'gsc_gap' | 'gsc_lowctr' | 'suggest' | 'naver' | 'community' | 'internal_gap' | 'seasonal'
 export type CandidateStatus = 'new' | 'adopted' | 'dismissed'
 
 /** 소스가 뱉는 날것의 후보. 점수는 아직 안 매겨진 상태. */
