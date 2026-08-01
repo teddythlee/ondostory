@@ -51,6 +51,12 @@ const nextConfig: NextConfig = {
         destination: '/blog/sports-physical-exer-irvine',
         permanent: true,
       },
+      // 월드컵 글 → 에버그린 재구성(2026 월드컵 특정 → 미국에서 한국 스포츠 중계 보는 법)
+      {
+        source: '/blog/watch-2026-world-cup-korea',
+        destination: '/blog/us-watch-korean-sports-broadcast',
+        permanent: true,
+      },
       // car 클러스터 → settlement 병합 (허브 URL 통합)
       {
         source: '/guides/car',
