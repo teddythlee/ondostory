@@ -32,6 +32,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'JSON 파싱 실패' }, { status: 400 })
   }
 
+  // 진단: 시크릿 값은 노출하지 않고 상태만 검사(client_email·project_id는 비밀 아님).
+  if (body.diagnose === true) {
+    const raw = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || ''
+    let parsed: Record<string, unknown> | null = null
+    let parseError: string | undefined
+    try { parsed = JSON.parse(raw) } catch (e) { parseError = String(e) }
+    const pk = typeof parsed?.private_key === 'string' ? (parsed.private_key as string) : ''
+    return NextResponse.json({
+      google_key: {
+        present: raw.length > 0,
+        length: raw.length,
+        parses: !!parsed,
+        parseError,
+        has_client_email: !!parsed?.client_email,
+        has_private_key: !!parsed?.private_key,
+        client_email: parsed?.client_email,
+        project_id: parsed?.project_id,
+        private_key_starts_ok: pk.startsWith('-----BEGIN PRIVATE KEY-----'),
+        private_key_has_real_newline: pk.includes('\n'),
+        private_key_has_literal_backslash_n: pk.includes('\\n'),
+      },
+      indexnow_key_present: !!process.env.INDEXNOW_API_KEY,
+    })
+  }
+
   const paths = new Set<string>()
   const add = (v: unknown) => {
     const s = typeof v === 'string' ? v.trim() : ''
