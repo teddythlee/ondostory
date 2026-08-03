@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
+import { notifyGoogleIndexing, notifyIndexNow } from '@/lib/google-indexing'
 
 // 온디맨드 갱신 엔드포인트.
 // admin 에디터 저장은 /api/posts가 알아서 revalidate 하지만, 콘텐츠를 SQL이나 외부에서
@@ -10,6 +11,8 @@ import { revalidatePath } from 'next/cache'
 //   POST /api/revalidate   Authorization: Bearer <DRAFT_API_TOKEN>
 //   body: { "slug": "costco-beef-cuts-korean" }   또는   { "path": "/blog/..." }
 //         slug/path 배열도 허용: { "slugs": ["a","b"] }
+//   { "index": true } 를 함께 주면 Google Indexing API + IndexNow로 크롤 제출까지 한다
+//   (일반 revalidate는 가볍게 유지하려고 index는 opt-in. 병렬 처리라 URL 여러 개여도 지연 ~1-2s).
 
 export async function POST(req: NextRequest) {
   const configured = process.env.DRAFT_API_TOKEN
@@ -48,5 +51,21 @@ export async function POST(req: NextRequest) {
   for (const p of list) revalidatePath(p)
   revalidatePath('/blog') // 목록/글 순서도 같이 갱신
 
-  return NextResponse.json({ ok: true, revalidated: list })
+  // index:true 일 때만 Google Indexing API + IndexNow로 크롤 제출(병렬 allSettled).
+  // 일반 revalidate는 외부 호출 없이 가볍게 유지.
+  const indexed: string[] = []
+  if (body.index === true) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ondostory.com'
+    const blogUrls = list
+      .filter((p) => p.startsWith('/blog/') && p !== '/blog')
+      .map((p) => `${siteUrl}${p}`)
+    await Promise.allSettled(
+      blogUrls.flatMap((url) => {
+        indexed.push(url)
+        return [notifyGoogleIndexing(url, 'URL_UPDATED'), notifyIndexNow(url)]
+      })
+    )
+  }
+
+  return NextResponse.json({ ok: true, revalidated: list, indexed })
 }
