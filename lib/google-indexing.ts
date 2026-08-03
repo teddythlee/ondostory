@@ -16,7 +16,9 @@ async function getAccessToken(): Promise<string> {
 }
 
 export async function notifyGoogleIndexing(url: string, type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED') {
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) return
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+    return { ok: false, skipped: 'GOOGLE_SERVICE_ACCOUNT_KEY 미설정' }
+  }
 
   try {
     const accessToken = await getAccessToken()
@@ -31,15 +33,17 @@ export async function notifyGoogleIndexing(url: string, type: 'URL_UPDATED' | 'U
 
     const result = await response.json()
     console.log('Google Indexing API response:', result)
-    return result
+    // 성공 시 result.urlNotificationMetadata, 실패 시 result.error{code,message}
+    return { ok: response.ok, status: response.status, response: result }
   } catch (err) {
     console.error('Google Indexing API error:', err)
+    return { ok: false, error: String(err) }
   }
 }
 
 export async function notifyIndexNow(url: string) {
   const apiKey = process.env.INDEXNOW_API_KEY
-  if (!apiKey) return
+  if (!apiKey) return { ok: false, skipped: 'INDEXNOW_API_KEY 미설정' }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
   const host = new URL(siteUrl).hostname
@@ -56,8 +60,11 @@ export async function notifyIndexNow(url: string) {
       }),
     })
     console.log('IndexNow response:', res.status)
+    // 200/202 = 수락, 403 = key 불일치, 422 = URL/키 위치 문제
+    return { ok: res.ok, status: res.status }
   } catch (err) {
     console.error('IndexNow error:', err)
+    return { ok: false, error: String(err) }
   }
 }
 

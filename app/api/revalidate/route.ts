@@ -52,19 +52,26 @@ export async function POST(req: NextRequest) {
   revalidatePath('/blog') // 목록/글 순서도 같이 갱신
 
   // index:true 일 때만 Google Indexing API + IndexNow로 크롤 제출(병렬 allSettled).
-  // 일반 revalidate는 외부 호출 없이 가볍게 유지.
-  const indexed: string[] = []
+  // 각 URL별 실제 응답을 그대로 담아 반환 — 일반 revalidate는 외부 호출 없이 가볍게 유지.
+  type IndexResult = { url: string; google: unknown; indexnow: unknown }
+  let indexed: IndexResult[] = []
   if (body.index === true) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ondostory.com'
     const blogUrls = list
       .filter((p) => p.startsWith('/blog/') && p !== '/blog')
       .map((p) => `${siteUrl}${p}`)
-    await Promise.allSettled(
-      blogUrls.flatMap((url) => {
-        indexed.push(url)
-        return [notifyGoogleIndexing(url, 'URL_UPDATED'), notifyIndexNow(url)]
+    const settled = await Promise.allSettled(
+      blogUrls.map(async (url): Promise<IndexResult> => {
+        const [google, indexnow] = await Promise.all([
+          notifyGoogleIndexing(url, 'URL_UPDATED'),
+          notifyIndexNow(url),
+        ])
+        return { url, google, indexnow }
       })
     )
+    indexed = settled
+      .filter((s): s is PromiseFulfilledResult<IndexResult> => s.status === 'fulfilled')
+      .map((s) => s.value)
   }
 
   return NextResponse.json({ ok: true, revalidated: list, indexed })
