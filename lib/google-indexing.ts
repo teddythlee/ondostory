@@ -1,19 +1,7 @@
-import { GoogleAuth } from 'google-auth-library'
+import { getGoogleAccessToken } from './google-token'
 
 const INDEXING_API_URL = 'https://indexing.googleapis.com/v3/urlNotifications:publish'
-
-async function getAccessToken(): Promise<string> {
-  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}')
-
-  const auth = new GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/indexing'],
-  })
-
-  const client = await auth.getClient()
-  const token = await client.getAccessToken()
-  return token.token || ''
-}
+const INDEXING_SCOPE = 'https://www.googleapis.com/auth/indexing'
 
 export async function notifyGoogleIndexing(url: string, type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED') {
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
@@ -21,7 +9,8 @@ export async function notifyGoogleIndexing(url: string, type: 'URL_UPDATED' | 'U
   }
 
   try {
-    const accessToken = await getAccessToken()
+    // Web Crypto based token (google-auth-library fails on the Workers runtime).
+    const accessToken = await getGoogleAccessToken(INDEXING_SCOPE)
     const response = await fetch(INDEXING_API_URL, {
       method: 'POST',
       headers: {
