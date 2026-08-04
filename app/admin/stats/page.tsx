@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { getAdminSession } from '@/lib/auth'
 import { getAllPostsAdminMeta } from '@/lib/posts'
 import { getClustersAdmin } from '@/lib/clusters'
-import { getGscInsights, getGscTrend, getDailyTrend, type DailyPoint } from '@/lib/gsc'
+import { getGscInsights, getGscTrend, getSignalsTrend, type SignalPoint } from '@/lib/gsc'
 import AdminLogoutButton from '../LogoutButton'
 
 const shortPath = (url: string) => url.replace(/^https?:\/\/(www\.)?ondostory\.com/, '') || '/'
@@ -13,12 +13,12 @@ export default async function StatsPage() {
   const session = await getAdminSession()
   if (!session) redirect('/admin/login')
 
-  const [posts, clusters, insights, trend, daily] = await Promise.all([
+  const [posts, clusters, insights, trend, signals] = await Promise.all([
     getAllPostsAdminMeta().catch(() => []),
     getClustersAdmin().catch(() => []),
     getGscInsights().catch(() => null),
     getGscTrend().catch(() => null),
-    getDailyTrend(60).catch(() => [] as DailyPoint[]),
+    getSignalsTrend(90).catch(() => [] as SignalPoint[]),
   ])
 
   const published = posts.filter((p) => p.status === 'published')
@@ -112,16 +112,17 @@ export default async function StatsPage() {
                 <GscKpi label="평균 순위" cur={trend?.recent28.position ?? insights!.totals.position} prev={trend?.prev28.position} digits={1} lowerBetter />
               </div>
 
-              {/* 일별 추세 차트 */}
+              {/* 기회 신호 추세 차트 (파생 지표) */}
               <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-800">날짜별 추세</h3>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-sm font-semibold text-gray-800">기회 신호 추세</h3>
                   <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-1.5"><i className="inline-block w-3 h-2 rounded-sm bg-blue-200" />노출</span>
-                    <span className="flex items-center gap-1.5"><i className="inline-block w-3 h-0.5 bg-orange-500" />클릭</span>
+                    <span className="flex items-center gap-1.5"><i className="inline-block w-3 h-0.5 bg-blue-500" />문턱 검색어</span>
+                    <span className="flex items-center gap-1.5"><i className="inline-block w-3 h-0.5 bg-orange-500" />메타 손질 후보</span>
                   </div>
                 </div>
-                <TrendChart data={daily} />
+                <p className="text-xs text-gray-400 mb-3">노출/클릭(원지표) 말고, 매일 계산해 뽑는 개수 — 문턱 검색어(순위 8~20위)·메타 손질 후보(노출↑CTR↓)가 늘면 기회가 쌓이는 것</p>
+                <SignalChart data={signals} />
               </div>
 
               {/* 제목·메타 손질 후보 (노출 많은데 CTR 낮은 페이지) */}
@@ -368,50 +369,47 @@ function niceMax(v: number, step: number) {
   return Math.max(step, Math.ceil(v / step) * step)
 }
 
-function TrendChart({ data }: { data: DailyPoint[] }) {
+function SignalChart({ data }: { data: SignalPoint[] }) {
   if (data.length < 2) {
-    return <div className="h-40 flex items-center justify-center text-sm text-gray-400">추세 데이터 수집 중 — 매일 자동으로 채워집니다.</div>
+    return (
+      <div className="h-40 flex items-center justify-center text-sm text-gray-400 text-center px-6">
+        기회 신호는 매일 1점씩 쌓입니다 — 며칠 뒤부터 추세가 보여요.
+      </div>
+    )
   }
   const W = 900, H = 210
-  const pad = { l: 40, r: 36, t: 18, b: 26 }
+  const pad = { l: 34, r: 14, t: 18, b: 26 }
   const iw = W - pad.l - pad.r
   const ih = H - pad.t - pad.b
   const n = data.length
-  const maxImpr = niceMax(Math.max(...data.map((d) => d.impressions), 1), 10)
-  const maxClk = niceMax(Math.max(...data.map((d) => d.clicks), 1), 2)
+  const maxV = niceMax(Math.max(...data.flatMap((d) => [d.opportunities, d.meta_candidates]), 1), 2)
   const x = (i: number) => pad.l + (i / (n - 1)) * iw
-  const yI = (v: number) => pad.t + (1 - v / maxImpr) * ih
-  const yC = (v: number) => pad.t + (1 - v / maxClk) * ih
-  const base = pad.t + ih
-
-  const imprArea = `M ${x(0)} ${base} ` + data.map((d, i) => `L ${x(i).toFixed(1)} ${yI(d.impressions).toFixed(1)}`).join(' ') + ` L ${x(n - 1)} ${base} Z`
-  const imprLine = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${yI(d.impressions).toFixed(1)}`).join(' ')
-  const clkLine = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${yC(d.clicks).toFixed(1)}`).join(' ')
+  const y = (v: number) => pad.t + (1 - v / maxV) * ih
+  const line = (key: 'opportunities' | 'meta_candidates') =>
+    data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(d[key]).toFixed(1)}`).join(' ')
   const lbl = (s: string) => `${Number(s.slice(5, 7))}/${Number(s.slice(8, 10))}`
   const grid = [0, 0.25, 0.5, 0.75, 1]
   const ticks = [0, Math.floor((n - 1) / 3), Math.floor((2 * (n - 1)) / 3), n - 1].filter((v, i, a) => a.indexOf(v) === i)
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="노출·클릭 날짜별 추세">
-      {/* 축 제목 */}
-      <text x={pad.l - 6} y={pad.t - 6} fontSize={10} fill="#6b7280" textAnchor="end">노출</text>
-      <text x={W - pad.r + 6} y={pad.t - 6} fontSize={10} fill="#f97316" textAnchor="start">클릭</text>
-      {/* 그리드선 + 좌축(노출)·우축(클릭) 값 */}
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="기회 신호 날짜별 추세">
+      <text x={pad.l - 6} y={pad.t - 6} fontSize={10} fill="#6b7280" textAnchor="end">개</text>
       {grid.map((g, i) => {
-        const y = pad.t + (1 - g) * ih
+        const gy = pad.t + (1 - g) * ih
         return (
           <g key={i}>
-            <line x1={pad.l} y1={y} x2={W - pad.r} y2={y} stroke={g === 0 ? '#d1d5db' : '#ececeb'} strokeWidth={1} />
-            <text x={pad.l - 6} y={y + 3.5} fontSize={10} fill="#9ca3af" textAnchor="end">{Math.round(maxImpr * g)}</text>
-            <text x={W - pad.r + 6} y={y + 3.5} fontSize={10} fill="#fb923c" textAnchor="start">{Math.round(maxClk * g)}</text>
+            <line x1={pad.l} y1={gy} x2={W - pad.r} y2={gy} stroke={g === 0 ? '#d1d5db' : '#ececeb'} strokeWidth={1} />
+            <text x={pad.l - 6} y={gy + 3.5} fontSize={10} fill="#9ca3af" textAnchor="end">{Math.round(maxV * g)}</text>
           </g>
         )
       })}
-      <path d={imprArea} fill="rgb(191 219 254)" opacity={0.5} />
-      <path d={imprLine} fill="none" stroke="rgb(59 130 246)" strokeWidth={1.5} />
-      <path d={clkLine} fill="none" stroke="rgb(249 115 22)" strokeWidth={2} />
+      <path d={line('opportunities')} fill="none" stroke="rgb(59 130 246)" strokeWidth={2} />
+      <path d={line('meta_candidates')} fill="none" stroke="rgb(249 115 22)" strokeWidth={2} />
       {data.map((d, i) => (
-        <circle key={i} cx={x(i)} cy={yC(d.clicks)} r={2.2} fill="rgb(249 115 22)" />
+        <g key={i}>
+          <circle cx={x(i)} cy={y(d.opportunities)} r={2.2} fill="rgb(59 130 246)" />
+          <circle cx={x(i)} cy={y(d.meta_candidates)} r={2.2} fill="rgb(249 115 22)" />
+        </g>
       ))}
       {ticks.map((i) => (
         <text key={i} x={x(i)} y={H - 8} fontSize={10} fill="#9ca3af" textAnchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}>

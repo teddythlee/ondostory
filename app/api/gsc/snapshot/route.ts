@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/auth'
-import { snapshotRecent, snapshotBackfillMonthly, snapshotDaily } from '@/lib/gsc'
+import { snapshotRecent, snapshotBackfillMonthly, snapshotDaily, snapshotSignals } from '@/lib/gsc'
 
 // POST /api/gsc/snapshot            → 최근 28일 스냅샷 1개 저장
 // POST /api/gsc/snapshot?mode=daily → 일별 총계(gsc_daily) upsert (일간 cron·추세 차트용)
@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
       label = 'backfill'
     } else if (mode === 'daily') {
       inserted = await snapshotDaily()
-      label = 'daily'
+      const sig = await snapshotSignals()
+      return NextResponse.json({ ok: true, mode: 'daily', inserted, signals: sig })
     } else {
       inserted = await snapshotRecent()
       label = 'recent'

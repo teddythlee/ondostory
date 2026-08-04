@@ -459,3 +459,54 @@ export async function getDailyTrend(days = 60): Promise<DailyPoint[]> {
     .order('day', { ascending: true })
   return (data || []) as DailyPoint[]
 }
+
+// ── 파생 '기회 신호' 일별 스냅샷 ──────────────────────────────────────────
+// 노출/클릭 원지표가 아니라, 매일 계산해 뽑는 인사이트 개수를 쌓는다:
+//   opportunities  = 문턱 검색어 수(순위 8~20위, 노출≥8)
+//   metaCandidates = 제목·메타 손질 후보 수(노출≥50, CTR<5% 페이지)
+
+// endDate 기준 90일 롤링 윈도의 시작일(87일 전).
+function windowStart(endDate: string): string {
+  const d = new Date(`${endDate}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() - 87)
+  return d.toISOString().slice(0, 10)
+}
+
+async function signalCountsForWindow(endDate: string): Promise<{ opportunities: number; metaCandidates: number }> {
+  const startDate = windowStart(endDate)
+  const [queries, pages] = await Promise.all([
+    query({ startDate, endDate, dimensions: ['query'], rowLimit: 1000 }),
+    query({ startDate, endDate, dimensions: ['page'], rowLimit: 1000 }),
+  ])
+  const opportunities = queries.filter((r) => r.position >= 8 && r.position <= 20.5 && r.impressions >= 8).length
+  const metaCandidates = pages.filter((r) => r.impressions >= 50 && r.ctr < 0.05).length
+  return { opportunities, metaCandidates }
+}
+
+export interface SignalPoint {
+  day: string
+  opportunities: number
+  meta_candidates: number
+}
+
+/** 오늘(최신 데이터일) 기준 기회 신호 개수를 gsc_signals에 upsert. 일간 cron용. */
+export async function snapshotSignals(): Promise<{ day: string; opportunities: number; metaCandidates: number }> {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) throw new Error('GSC not configured')
+  const day = daysAgo(3)
+  const { opportunities, metaCandidates } = await signalCountsForWindow(day)
+  const { error } = await supabaseAdmin
+    .from('gsc_signals')
+    .upsert({ day, opportunities, meta_candidates: metaCandidates, updated_at: new Date().toISOString() }, { onConflict: 'day' })
+  if (error) throw error
+  return { day, opportunities, metaCandidates }
+}
+
+/** 저장된 기회 신호 추세(오름차순) — 차트용. */
+export async function getSignalsTrend(days = 90): Promise<SignalPoint[]> {
+  const { data } = await supabaseAdmin
+    .from('gsc_signals')
+    .select('day, opportunities, meta_candidates')
+    .gte('day', daysAgo(days))
+    .order('day', { ascending: true })
+  return (data || []) as SignalPoint[]
+}
