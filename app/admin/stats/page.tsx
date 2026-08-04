@@ -334,35 +334,57 @@ function MetricTable({ cols, rows, empty }: { cols: string[]; rows: (string | nu
   )
 }
 
+function niceMax(v: number, step: number) {
+  return Math.max(step, Math.ceil(v / step) * step)
+}
+
 function TrendChart({ data }: { data: DailyPoint[] }) {
   if (data.length < 2) {
     return <div className="h-40 flex items-center justify-center text-sm text-gray-400">추세 데이터 수집 중 — 매일 자동으로 채워집니다.</div>
   }
-  const W = 900, H = 180
-  const pad = { l: 6, r: 6, t: 12, b: 22 }
+  const W = 900, H = 210
+  const pad = { l: 40, r: 36, t: 18, b: 26 }
   const iw = W - pad.l - pad.r
   const ih = H - pad.t - pad.b
-  const maxImpr = Math.max(...data.map((d) => d.impressions), 1)
-  const maxClk = Math.max(...data.map((d) => d.clicks), 1)
   const n = data.length
-  const x = (i: number) => pad.l + (n === 1 ? iw / 2 : (i / (n - 1)) * iw)
+  const maxImpr = niceMax(Math.max(...data.map((d) => d.impressions), 1), 10)
+  const maxClk = niceMax(Math.max(...data.map((d) => d.clicks), 1), 2)
+  const x = (i: number) => pad.l + (i / (n - 1)) * iw
   const yI = (v: number) => pad.t + (1 - v / maxImpr) * ih
   const yC = (v: number) => pad.t + (1 - v / maxClk) * ih
+  const base = pad.t + ih
 
-  const imprArea = `M ${x(0)} ${pad.t + ih} ` + data.map((d, i) => `L ${x(i).toFixed(1)} ${yI(d.impressions).toFixed(1)}`).join(' ') + ` L ${x(n - 1)} ${pad.t + ih} Z`
+  const imprArea = `M ${x(0)} ${base} ` + data.map((d, i) => `L ${x(i).toFixed(1)} ${yI(d.impressions).toFixed(1)}`).join(' ') + ` L ${x(n - 1)} ${base} Z`
+  const imprLine = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${yI(d.impressions).toFixed(1)}`).join(' ')
   const clkLine = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${yC(d.clicks).toFixed(1)}`).join(' ')
   const lbl = (s: string) => `${Number(s.slice(5, 7))}/${Number(s.slice(8, 10))}`
-  const ticks = [0, Math.floor(n / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i)
+  const grid = [0, 0.25, 0.5, 0.75, 1]
+  const ticks = [0, Math.floor((n - 1) / 3), Math.floor((2 * (n - 1)) / 3), n - 1].filter((v, i, a) => a.indexOf(v) === i)
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 180 }} preserveAspectRatio="none">
-      <path d={imprArea} fill="rgb(191 219 254)" opacity={0.7} />
-      <path d={clkLine} fill="none" stroke="rgb(249 115 22)" strokeWidth={2} vectorEffect="non-scaling-stroke" />
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="노출·클릭 날짜별 추세">
+      {/* 축 제목 */}
+      <text x={pad.l - 6} y={pad.t - 6} fontSize={10} fill="#6b7280" textAnchor="end">노출</text>
+      <text x={W - pad.r + 6} y={pad.t - 6} fontSize={10} fill="#f97316" textAnchor="start">클릭</text>
+      {/* 그리드선 + 좌축(노출)·우축(클릭) 값 */}
+      {grid.map((g, i) => {
+        const y = pad.t + (1 - g) * ih
+        return (
+          <g key={i}>
+            <line x1={pad.l} y1={y} x2={W - pad.r} y2={y} stroke={g === 0 ? '#d1d5db' : '#ececeb'} strokeWidth={1} />
+            <text x={pad.l - 6} y={y + 3.5} fontSize={10} fill="#9ca3af" textAnchor="end">{Math.round(maxImpr * g)}</text>
+            <text x={W - pad.r + 6} y={y + 3.5} fontSize={10} fill="#fb923c" textAnchor="start">{Math.round(maxClk * g)}</text>
+          </g>
+        )
+      })}
+      <path d={imprArea} fill="rgb(191 219 254)" opacity={0.5} />
+      <path d={imprLine} fill="none" stroke="rgb(59 130 246)" strokeWidth={1.5} />
+      <path d={clkLine} fill="none" stroke="rgb(249 115 22)" strokeWidth={2} />
       {data.map((d, i) => (
-        <circle key={i} cx={x(i)} cy={yC(d.clicks)} r={2} fill="rgb(249 115 22)" />
+        <circle key={i} cx={x(i)} cy={yC(d.clicks)} r={2.2} fill="rgb(249 115 22)" />
       ))}
       {ticks.map((i) => (
-        <text key={i} x={x(i)} y={H - 6} fontSize={11} fill="#9ca3af" textAnchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}>
+        <text key={i} x={x(i)} y={H - 8} fontSize={10} fill="#9ca3af" textAnchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}>
           {lbl(data[i].day)}
         </text>
       ))}
