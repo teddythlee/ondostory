@@ -60,6 +60,23 @@ export default async function StatsPage() {
 
   const gscOn = insights?.configured && !insights?.error
 
+  // 노출·클릭 상위: 같은 페이지끼리 묶어 (페이지 1개 = 유입 검색어 여러 개)
+  const topPages = (() => {
+    if (!insights?.queryPages) return []
+    const m = new Map<string, { page: string; impr: number; clk: number; queries: { q: string; impr: number }[] }>()
+    for (const r of insights.queryPages) {
+      const g = m.get(r.page) ?? { page: r.page, impr: 0, clk: 0, queries: [] }
+      g.impr += r.impressions
+      g.clk += r.clicks
+      g.queries.push({ q: r.query, impr: r.impressions })
+      m.set(r.page, g)
+    }
+    return [...m.values()]
+      .sort((a, b) => b.impr - a.impr)
+      .slice(0, 12)
+      .map((g) => ({ ...g, queries: g.queries.sort((a, b) => b.impr - a.impr).slice(0, 6) }))
+  })()
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200">
@@ -148,21 +165,34 @@ export default async function StatsPage() {
               {/* 노출·클릭 top (검색어 → 페이지) */}
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-900">🔝 노출·클릭 상위 검색어</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">어떤 검색어가 어느 글로 유입되는지 (노출 순)</p>
+                  <h3 className="font-semibold text-gray-900">🔝 노출·클릭 상위 (페이지별)</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">글마다 어떤 검색어로 유입되는지 — 페이지 하나에 검색어를 묶었다</p>
                 </div>
-                <MetricTable
-                  cols={['검색어', '페이지', '노출', '클릭', 'CTR', '순위']}
-                  rows={(insights!.queryPages || []).slice(0, 20).map((r) => [
-                    r.query,
-                    shortPath(r.page),
-                    r.impressions.toLocaleString(),
-                    String(r.clicks),
-                    `${(r.ctr * 100).toFixed(1)}%`,
-                    r.position.toFixed(1),
-                  ])}
-                  empty="아직 없음"
-                />
+                {topPages.length === 0 ? (
+                  <div className="px-6 py-6 text-sm text-gray-400">아직 없음</div>
+                ) : (
+                  <div className="divide-y divide-gray-100">
+                    {topPages.map((g) => (
+                      <div key={g.page} className="px-6 py-3">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <a href={g.page} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-800 hover:text-blue-600 truncate" title={g.page}>
+                            {shortPath(g.page)}
+                          </a>
+                          <span className="text-xs text-gray-500 tabular-nums whitespace-nowrap">
+                            노출 <b className="text-gray-800">{g.impr.toLocaleString()}</b> · 클릭 <b className="text-gray-800">{g.clk}</b> · CTR {g.impr ? ((g.clk / g.impr) * 100).toFixed(1) : '0'}%
+                          </span>
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {g.queries.map((q) => (
+                            <span key={q.q} className="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">
+                              {q.q} <span className="text-gray-400">{q.impr}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </>
           )}
