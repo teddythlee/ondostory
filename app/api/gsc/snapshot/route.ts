@@ -1,9 +1,10 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/auth'
-import { snapshotRecent, snapshotBackfillMonthly } from '@/lib/gsc'
+import { snapshotRecent, snapshotBackfillMonthly, snapshotDaily } from '@/lib/gsc'
 
 // POST /api/gsc/snapshot            → 최근 28일 스냅샷 1개 저장
+// POST /api/gsc/snapshot?mode=daily → 일별 총계(gsc_daily) upsert (일간 cron·추세 차트용)
 // POST /api/gsc/snapshot?mode=backfill → 지난 13개월 월별 백필(시즌/YoY 시작점)
 //
 // 인증 두 갈래: 관리자 세션 쿠키(/admin/topics 버튼) 또는
@@ -22,8 +23,19 @@ export async function POST(req: NextRequest) {
   }
   try {
     const mode = new URL(req.url).searchParams.get('mode')
-    const inserted = mode === 'backfill' ? await snapshotBackfillMonthly(13) : await snapshotRecent()
-    return NextResponse.json({ ok: true, mode: mode === 'backfill' ? 'backfill' : 'recent', inserted })
+    let inserted: number
+    let label: string
+    if (mode === 'backfill') {
+      inserted = await snapshotBackfillMonthly(13)
+      label = 'backfill'
+    } else if (mode === 'daily') {
+      inserted = await snapshotDaily()
+      label = 'daily'
+    } else {
+      inserted = await snapshotRecent()
+      label = 'recent'
+    }
+    return NextResponse.json({ ok: true, mode: label, inserted })
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json({ error: msg }, { status: 500 })

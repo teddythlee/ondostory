@@ -381,3 +381,81 @@ export async function getSnapshotComparison(): Promise<SnapshotComparison> {
 
   return { hasData: true, prevPeriod: label(prev), curPeriod: label(cur), rows: rows.slice(0, 40) }
 }
+
+// ── 대시보드용: 기간 비교 · 일별 추세 ────────────────────────────────────
+
+export interface PeriodMetrics {
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
+export interface GscTrend {
+  configured: boolean
+  recent7: PeriodMetrics
+  prev7: PeriodMetrics
+  recent28: PeriodMetrics
+  prev28: PeriodMetrics
+}
+
+const ZERO_M: PeriodMetrics = { clicks: 0, impressions: 0, ctr: 0, position: 0 }
+
+/** 최근 7일/28일을 직전 동일 기간과 비교 (라이브 GSC 호출, 매일 갱신). */
+export async function getGscTrend(): Promise<GscTrend> {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+    return { configured: false, recent7: ZERO_M, prev7: ZERO_M, recent28: ZERO_M, prev28: ZERO_M }
+  }
+  const m = async (startDate: string, endDate: string): Promise<PeriodMetrics> => {
+    const rows = await query({ startDate, endDate, dimensions: [] })
+    const t = rows[0]
+    return t ? { clicks: t.clicks, impressions: t.impressions, ctr: t.ctr, position: t.position } : ZERO_M
+  }
+  try {
+    const [recent7, prev7, recent28, prev28] = await Promise.all([
+      m(daysAgo(9), daysAgo(3)),
+      m(daysAgo(16), daysAgo(10)),
+      m(daysAgo(31), daysAgo(3)),
+      m(daysAgo(59), daysAgo(32)),
+    ])
+    return { configured: true, recent7, prev7, recent28, prev28 }
+  } catch {
+    return { configured: true, recent7: ZERO_M, prev7: ZERO_M, recent28: ZERO_M, prev28: ZERO_M }
+  }
+}
+
+export interface DailyPoint {
+  day: string
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
+/** 일별 총계를 gsc_daily에 upsert. GSC ~3일 지연이라 최근 며칠을 겹쳐 저장(멱등). 일간 cron용. */
+export async function snapshotDaily(): Promise<number> {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) throw new Error('GSC not configured')
+  const rows = await query({ startDate: daysAgo(14), endDate: daysAgo(1), dimensions: ['date'], rowLimit: 100 })
+  if (rows.length === 0) return 0
+  const recs = rows.map((r) => ({
+    day: r.keys[0],
+    clicks: r.clicks,
+    impressions: r.impressions,
+    ctr: r.ctr,
+    position: r.position,
+    updated_at: new Date().toISOString(),
+  }))
+  const { error } = await supabaseAdmin.from('gsc_daily').upsert(recs, { onConflict: 'day' })
+  if (error) throw error
+  return recs.length
+}
+
+/** 저장된 일별 추세(오름차순) — 차트용. */
+export async function getDailyTrend(days = 60): Promise<DailyPoint[]> {
+  const { data } = await supabaseAdmin
+    .from('gsc_daily')
+    .select('day, clicks, impressions, ctr, position')
+    .gte('day', daysAgo(days))
+    .order('day', { ascending: true })
+  return (data || []) as DailyPoint[]
+}

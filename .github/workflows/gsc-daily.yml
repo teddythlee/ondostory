@@ -1,0 +1,27 @@
+# 매일 서치콘솔 '일별 총계' 스냅샷.
+#
+# gsc_daily 테이블에 하루 단위(노출·클릭·CTR·순위) 총계를 upsert해 날짜별 추세 차트를 만든다.
+# GSC는 ~3일 지연이라 매일 최근 며칠을 겹쳐 저장(멱등). 주간 gsc-snapshot(구간 스냅샷)과 별개.
+
+name: gsc-daily
+
+on:
+  schedule:
+    - cron: '15 14 * * *' # 매일 UTC 14:15
+  workflow_dispatch:
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 일별 총계 저장
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.ondostory.com' }}
+          DISCOVERY_TOKEN: ${{ secrets.DISCOVERY_TOKEN }}
+        run: |
+          code=$(curl -sS -o response.json -w '%{http_code}' \
+            -X POST "$SITE_URL/api/gsc/snapshot?mode=daily" \
+            -H "Authorization: Bearer $DISCOVERY_TOKEN" \
+            --max-time 120)
+          echo "HTTP $code"; cat response.json; echo
+          [ "$code" = "200" ] || { echo "::error::일별 스냅샷 실패 (HTTP $code)"; exit 1; }
