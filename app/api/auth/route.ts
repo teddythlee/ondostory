@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { createAdminSessionToken, ADMIN_SESSION_MAX_AGE } from '@/lib/admin-session'
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json()
@@ -29,12 +30,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '관리자 권한이 없습니다.' }, { status: 403 })
   }
 
+  const token = await createAdminSessionToken({
+    sub: data.user.id,
+    email: data.user.email ?? '',
+  })
+
   const response = NextResponse.json({ success: true })
-  response.cookies.set('admin_token', data.session.access_token, {
+  response.cookies.set('admin_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: ADMIN_SESSION_MAX_AGE, // 60일
     path: '/',
   })
 

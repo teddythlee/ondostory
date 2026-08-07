@@ -90,6 +90,9 @@ export default function AdminLoginPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
             <input
               type="email"
+              name="email"
+              id="email"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -101,6 +104,9 @@ export default function AdminLoginPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">비밀번호</label>
             <input
               type="password"
+              name="password"
+              id="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

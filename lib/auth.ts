@@ -1,15 +1,10 @@
 import { cookies } from 'next/headers'
-import { supabaseAdmin } from './supabase'
+import { verifyAdminSessionToken } from './admin-session'
 
 export async function getAdminSession() {
   const cookieStore = await cookies()
   const token = cookieStore.get('admin_token')?.value
-  if (!token) return null
-
-  const { data, error } = await supabaseAdmin.auth.getUser(token)
-  if (error || !data.user) return null
-  if (data.user.user_metadata?.role !== 'admin') return null
-  return data.user
+  return verifyAdminSessionToken(token)
 }
 
 export async function requireAdmin() {
