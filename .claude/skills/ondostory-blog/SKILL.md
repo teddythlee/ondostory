@@ -36,16 +36,23 @@ select slug,
   (content ~ 'alt="[^"]*이미지 [0-9]' or content like '%ondostory 이미지%'
      or content like '%alt=""%') as bad_alt,                             -- 자동 placeholder alt·빈 alt
   (content ~ '[0-9]{4}년 [0-9]{1,2}월 [0-9]{1,2}일까지') as hardcoded_date, -- 지난 만료일 박제(→ 눈으로 지났는지)
-  ((content ~* '\$[0-9]|[0-9]+ *불') and content not like '%<blockquote>%') as price_no_disclaimer
+  ((content ~* '\$[0-9]|[0-9]+ *불') and content not like '%<blockquote>%') as price_no_disclaimer,
+  (content like '%**%' or content ~ '(^|>)#{1,3} ' or content ~ '\]\([^)]') as md_leak,  -- 마크다운이 HTML 본문에 샘(**굵게**·## 제목·[링크](url) → 화면에 기호 노출)
+  (content ~ '[^.\d]\.\.($|[^.\d])' or content ~ ' \.(</| |$)') as bad_punct              -- 이중 마침표(…ellipsis 아닌 ..)·마침표 앞 공백("된다 .")
 from posts where status='published' and (
   content ~ '\[(사진|AI 일러스트|경험 추가|확인 필요)'
   or content ~ 'alt="[^"]*이미지 [0-9]' or content like '%ondostory 이미지%' or content like '%alt=""%'
   or content ~ '[0-9]{4}년 [0-9]{1,2}월 [0-9]{1,2}일까지'
-  or ((content ~* '\$[0-9]|[0-9]+ *불') and content not like '%<blockquote>%'));
+  or ((content ~* '\$[0-9]|[0-9]+ *불') and content not like '%<blockquote>%')
+  or content like '%**%' or content ~ '(^|>)#{1,3} ' or content ~ '\]\([^)]'
+  or content ~ '[^.\d]\.\.($|[^.\d])' or content ~ ' \.(</| |$)');
 ```
    - **마커**는 실제 사진·경험이 있어야 채워지므로 임의로 채우지 말고 **채우거나 지운다.** (`[AI 일러스트: …]`도 §8-4가 커버로 권장 → placeholder가 생기니 반드시 스캔 대상.)
    - **표**는 `<p>`에 셀이 뭉치지 않고 실제 `<table>`인지 눈으로 확인(자동 탐지는 오탐 많아 쿼리에 안 넣음 — 중고거래 글이 셀 뭉친 채 발행된 적 있음).
    - **disclaimer**는 일반 `<p>`·리스트 `<em>`이 아니라 실제 `<blockquote>`인지 확인.
+   - **md_leak**: 마크다운으로 쓴 초안이 HTML 본문에 그대로 들어가 `**굵게**`·`## 제목`·`[링크](url)`가 화면에 기호째 노출되는 케이스(california-dmv 글에서 `**` 21쌍 발견). 걸리면 `<strong>`·`<h2>`·`<a>`로 교체.
+   - **bad_punct**: 이중 마침표(`…` ellipsis 아닌 `..`)·마침표 앞 공백(`된다 .`). 걸리면 정리.
+   - **⚠️ 규칙 스캔의 한계 = 오타는 못 잡는다.** 한국어는 형태소 사이 공백이 없어 `직히`가 `솔직히`를, `바램`이 `색바램`을 오탐한다. 진짜 오타·비문·사실오류·요약↔본문 불일치는 **LLM 통독 스윕**으로만 잡힌다 — 발행글 전수를 배치로 나눠(에이전트 병렬) 각 글을 통독시키고 고신뢰 문제만 리포트받는다. 규칙(기계적 잔재) + 통독(의미 오류) 이중 안전망.
    - **발행글을 SQL로 고쳤으면 곧바로 `POST https://www.ondostory.com/api/revalidate`**(Bearer `DRAFT_API_TOKEN`, body `{"slugs":[...]}`)로 즉시 반영 — 안 하면 ~10분 ISR stale이라 그 사이 GSC가 옛 버전을 크롤한다.
 7. **저장(draft)** — 아래. 발행은 사람이 한다.
 8. **히스토리** — 실제 발행된 뒤에만 `data/content-history.json`을 갱신한다(초안은 사용자가 추적을 요청할 때만 `status:"draft"`로).
