@@ -28,11 +28,13 @@ export async function generateMetadata(): Promise<Metadata> {
 function GridCard({ post }: { post: PostMeta }) {
   return (
     <Link href={`/blog/${post.slug}`} className="group flex flex-col">
-      {post.cover_image ? (
-        <img src={post.cover_image} alt={post.title} className="w-full h-44 object-cover rounded-xl mb-4" />
-      ) : (
-        <div className="w-full h-44 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center text-3xl text-gray-300">📝</div>
-      )}
+      <div className="relative w-full h-44 rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-gray-100 to-gray-200">
+        {post.cover_image ? (
+          <img src={post.cover_image} alt={post.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-3xl text-gray-300">📝</div>
+        )}
+      </div>
       <div className="flex items-center gap-1.5 flex-wrap mb-2">
         {post.category && <span className="text-[11px] text-blue-500 font-medium">{post.category}</span>}
         {post.tags.slice(0, 2).map((t) => (
@@ -150,7 +152,7 @@ export default async function BlogPage({ searchParams }: Props) {
             >
               <div className="relative w-24 sm:w-28 aspect-[2/3] flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
                 {post.cover_image ? (
-                  <img src={post.cover_image} alt={post.title} className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={post.cover_image} alt={post.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-2xl text-gray-300">📝</div>
                 )}
