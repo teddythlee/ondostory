@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-/** 그리드 카드 — featured 행과 전체 격자에서 공용 */
+/** 아카이브 격자 카드 (평면) */
 function GridCard({ post }: { post: PostMeta }) {
   return (
     <Link href={`/blog/${post.slug}`} className="group flex flex-col">
@@ -65,13 +65,21 @@ export default async function BlogPage({ searchParams }: Props) {
     )
   }
 
-  // 필터/검색이 없는 기본 화면에서만 "많이 읽는 글"을 앞세운다.
   const isDefault = !tag && !category && !q
-  const popular = isDefault
-    ? [...allPosts].filter((p) => p.view_count > 0).sort((a, b) => b.view_count - a.view_count).slice(0, 6)
-    : []
-  const heroPost = popular[0]
-  const restPopular = popular.slice(1)
+
+  // 스포트라이트: 조회수 상위에서 클러스터가 겹치지 않게 3개.
+  // 1등 편중·정체를 피하고 서로 다른 주제로 다양한 관심사를 커버한다.
+  const spotlight: PostMeta[] = []
+  if (isDefault) {
+    const seen = new Set<string>()
+    for (const p of [...allPosts].filter((p) => p.view_count > 0).sort((a, b) => b.view_count - a.view_count)) {
+      const key = p.cluster ?? `id:${p.id}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      spotlight.push(p)
+      if (spotlight.length >= 3) break
+    }
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
@@ -94,43 +102,36 @@ export default async function BlogPage({ searchParams }: Props) {
         view={view === 'list' ? 'list' : 'grid'}
       />
 
-      {/* 스포트라이트 — 히어로(1위) + 순위 리스트로 아래 격자와 위계를 확실히 구분 */}
-      {isDefault && heroPost && (
+      {/* 스포트라이트 — 조회수 상위 3개(클러스터 분산). elevated 흰 카드로 아래 격자와 구분 */}
+      {isDefault && spotlight.length > 0 && (
         <section className="mb-14 rounded-3xl bg-gray-50/80 p-5 sm:p-7">
           <h2 className="font-display text-lg text-gray-900 mb-5 flex items-center gap-2">
-            <span aria-hidden>🔥</span> 지금 많이 읽는 글
+            <span aria-hidden>🔥</span> 많이 읽는 글
           </h2>
-          <div className="grid lg:grid-cols-5 gap-6 lg:gap-8 items-start">
-            {/* 히어로 (1위) */}
-            <Link href={`/blog/${heroPost.slug}`} className="group block lg:col-span-3">
-              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 mb-3.5">
-                {heroPost.cover_image ? (
-                  <img src={heroPost.cover_image} alt={heroPost.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-4xl text-gray-300">📝</div>
-                )}
-                {heroPost.category && (
-                  <span className="absolute top-3 left-3 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-black/50 text-white backdrop-blur-sm">{heroPost.category}</span>
-                )}
-              </div>
-              <h3 className="font-display text-xl sm:text-2xl text-gray-900 group-hover:text-blue-600 transition-colors leading-tight line-clamp-2">{heroPost.title}</h3>
-              <p className="text-sm text-gray-500 line-clamp-2 mt-2 leading-relaxed">{heroPost.excerpt}</p>
-              {heroPost.view_count > 0 && <p className="text-xs text-gray-400 mt-2">조회 {heroPost.view_count.toLocaleString()}</p>}
-            </Link>
-            {/* 순위 리스트 (2위~) */}
-            <ol className="lg:col-span-2 divide-y divide-gray-200/70">
-              {restPopular.map((post, i) => (
-                <li key={`pop-${post.id}`}>
-                  <Link href={`/blog/${post.slug}`} className="group flex gap-3 items-start py-3 first:pt-0">
-                    <span className="font-display text-lg font-bold text-gray-300 w-6 flex-shrink-0 tabular-nums leading-snug">{i + 2}</span>
-                    <div className="min-w-0">
-                      <h4 className="text-sm text-gray-800 font-medium group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">{post.title}</h4>
-                      {post.view_count > 0 && <span className="text-xs text-gray-400">조회 {post.view_count.toLocaleString()}</span>}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ol>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {spotlight.map((post) => (
+              <Link
+                key={`sp-${post.id}`}
+                href={`/blog/${post.slug}`}
+                className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all"
+              >
+                <div className="relative aspect-[16/10] bg-gradient-to-br from-gray-100 to-gray-200">
+                  {post.cover_image ? (
+                    <img src={post.cover_image} alt={post.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-3xl text-gray-300">📝</div>
+                  )}
+                  {post.category && (
+                    <span className="absolute top-2.5 left-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/50 text-white backdrop-blur-sm">{post.category}</span>
+                  )}
+                </div>
+                <div className="flex flex-col flex-1 p-4">
+                  <h3 className="font-display text-base sm:text-lg text-gray-900 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">{post.title}</h3>
+                  <p className="text-sm text-gray-500 line-clamp-2 mt-1.5 flex-1 leading-relaxed">{post.excerpt}</p>
+                  {post.view_count > 0 && <p className="text-xs text-gray-400 mt-2.5">조회 {post.view_count.toLocaleString()}</p>}
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       )}
