@@ -43,9 +43,16 @@ function GridCard({ post }: { post: PostMeta }) {
       </div>
       <h2 className="font-display text-xl text-gray-900 group-hover:text-blue-600 transition-colors mb-2 line-clamp-2 leading-tight">{post.title}</h2>
       <p className="text-sm text-gray-500 line-clamp-2 flex-1">{post.excerpt}</p>
-      {post.published_at && (
-        <p className="text-xs text-gray-400 mt-3">{format(new Date(post.published_at), 'yyyy.MM.dd', { locale: ko })}</p>
-      )}
+      <div className="mt-3 flex items-center justify-between">
+        {post.published_at ? (
+          <p className="text-xs text-gray-400">{format(new Date(post.published_at), 'yyyy.MM.dd', { locale: ko })}</p>
+        ) : (
+          <span />
+        )}
+        <span className="inline-flex items-center gap-0.5 text-sm font-medium text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+          읽어보기 <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+        </span>
+      </div>
     </Link>
   )
 }
@@ -130,7 +137,16 @@ export default async function BlogPage({ searchParams }: Props) {
                 <div className="flex flex-col flex-1 p-4">
                   <h3 className="font-display text-base sm:text-lg text-gray-900 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">{post.title}</h3>
                   <p className="text-sm text-gray-500 line-clamp-2 mt-1.5 flex-1 leading-relaxed">{post.excerpt}</p>
-                  {post.view_count > 0 && <p className="text-xs text-gray-400 mt-2.5">조회 {post.view_count.toLocaleString()}</p>}
+                  <div className="mt-2.5 flex items-center justify-between">
+                    {post.view_count > 0 ? (
+                      <span className="text-xs text-gray-400">조회 {post.view_count.toLocaleString()}</span>
+                    ) : (
+                      <span />
+                    )}
+                    <span className="inline-flex items-center gap-0.5 text-sm font-medium text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                      읽어보기 <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}
