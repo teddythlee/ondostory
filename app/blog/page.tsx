@@ -113,7 +113,7 @@ export default async function BlogPage({ searchParams }: Props) {
 
       {/* 스포트라이트 — 조회수 상위 3개(클러스터 분산). elevated 흰 카드로 아래 격자와 구분 */}
       {isDefault && spotlight.length > 0 && (
-        <section className="mb-14 rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50/50 p-5 sm:p-7">
+        <section className="mb-14 rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50/40 p-5 sm:p-7">
           <h2 className="font-display text-lg text-gray-900 mb-5 flex items-center gap-2">
             <span aria-hidden>🔥</span> 많이 읽는 글
           </h2>
