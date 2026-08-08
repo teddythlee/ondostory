@@ -70,6 +70,8 @@ export default async function BlogPage({ searchParams }: Props) {
   const popular = isDefault
     ? [...allPosts].filter((p) => p.view_count > 0).sort((a, b) => b.view_count - a.view_count).slice(0, 6)
     : []
+  const heroPost = popular[0]
+  const restPopular = popular.slice(1)
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
@@ -92,19 +94,48 @@ export default async function BlogPage({ searchParams }: Props) {
         view={view === 'list' ? 'list' : 'grid'}
       />
 
-      {/* 많이 읽는 글 — 검증된 인기글을 먼저 보여줘 진입점을 만든다 */}
-      {isDefault && popular.length > 0 && (
-        <section className="mb-12">
-          <h2 className="text-sm font-semibold text-gray-500 mb-4">🔥 많이 읽는 글</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {popular.map((post) => (
-              <GridCard key={`pop-${post.id}`} post={post} />
-            ))}
+      {/* 스포트라이트 — 히어로(1위) + 순위 리스트로 아래 격자와 위계를 확실히 구분 */}
+      {isDefault && heroPost && (
+        <section className="mb-14 rounded-3xl bg-gray-50/80 p-5 sm:p-7">
+          <h2 className="font-display text-lg text-gray-900 mb-5 flex items-center gap-2">
+            <span aria-hidden>🔥</span> 지금 많이 읽는 글
+          </h2>
+          <div className="grid lg:grid-cols-5 gap-6 lg:gap-8 items-start">
+            {/* 히어로 (1위) */}
+            <Link href={`/blog/${heroPost.slug}`} className="group block lg:col-span-3">
+              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 mb-3.5">
+                {heroPost.cover_image ? (
+                  <img src={heroPost.cover_image} alt={heroPost.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-4xl text-gray-300">📝</div>
+                )}
+                {heroPost.category && (
+                  <span className="absolute top-3 left-3 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-black/50 text-white backdrop-blur-sm">{heroPost.category}</span>
+                )}
+              </div>
+              <h3 className="font-display text-xl sm:text-2xl text-gray-900 group-hover:text-blue-600 transition-colors leading-tight line-clamp-2">{heroPost.title}</h3>
+              <p className="text-sm text-gray-500 line-clamp-2 mt-2 leading-relaxed">{heroPost.excerpt}</p>
+              {heroPost.view_count > 0 && <p className="text-xs text-gray-400 mt-2">조회 {heroPost.view_count.toLocaleString()}</p>}
+            </Link>
+            {/* 순위 리스트 (2위~) */}
+            <ol className="lg:col-span-2 divide-y divide-gray-200/70">
+              {restPopular.map((post, i) => (
+                <li key={`pop-${post.id}`}>
+                  <Link href={`/blog/${post.slug}`} className="group flex gap-3 items-start py-3 first:pt-0">
+                    <span className="font-display text-lg font-bold text-gray-300 w-6 flex-shrink-0 tabular-nums leading-snug">{i + 2}</span>
+                    <div className="min-w-0">
+                      <h4 className="text-sm text-gray-800 font-medium group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">{post.title}</h4>
+                      {post.view_count > 0 && <span className="text-xs text-gray-400">조회 {post.view_count.toLocaleString()}</span>}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
       )}
 
-      <p className="text-sm text-gray-400 mb-6">{isDefault ? '전체 글' : `${posts.length}개의 글`}</p>
+      <h2 className="font-display text-lg text-gray-900 mb-5">{isDefault ? '전체 글' : `${posts.length}개의 글`}</h2>
 
       {posts.length === 0 ? (
         <div className="text-center py-24 text-gray-400">검색 결과가 없습니다.</div>
