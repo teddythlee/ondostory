@@ -1,0 +1,35 @@
+# 온디맨드 자동 초안 (Phase [3]).
+#
+# 크론 없음 — "Run workflow" 버튼(workflow_dispatch)으로만 돈다.
+#   여기 크론은 며칠 뒤 타임아웃으로 썩어서(gsc-daily 15분 타임아웃 사례) 자동 스케줄을 안 건다.
+#   필요할 때(글 쓸 때) 눌러서 새 주제 조사·초안을 받는다. 누를 때만 크레딧 소모.
+#
+# 준비물 (레포 Settings → Secrets and variables → Actions):
+#   ANTHROPIC_API_KEY  Anthropic 콘솔 API 키(크레딧 있는 계정). LLM 조사·작성 비용 발생(회당 몇 십 원~).
+#   DRAFT_API_TOKEN    /api/drafts 저장용 Bearer 토큰(Cloudflare 시크릿과 같은 값).
+#   SITE_URL           (선택 variable) 기본값 https://www.ondostory.com
+
+name: autodraft
+
+on:
+  workflow_dispatch: # 수동 실행 버튼만
+
+jobs:
+  autodraft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Anthropic SDK 설치
+        run: npm install @anthropic-ai/sdk@latest --no-save
+      - name: 자동 초안 생성
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DRAFT_API_TOKEN: ${{ secrets.DRAFT_API_TOKEN }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.ondostory.com' }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then echo "::error::ANTHROPIC_API_KEY 시크릿이 없습니다"; exit 1; fi
+          if [ -z "$DRAFT_API_TOKEN" ]; then echo "::error::DRAFT_API_TOKEN 시크릿이 없습니다"; exit 1; fi
+          node scripts/autodraft.mjs
