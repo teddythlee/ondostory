@@ -76,3 +76,17 @@ body {
   pointer-events: none;
   height: 0;
 }
+
+/* 본문 팝업 트리거([팝업 label="…"]) — prose 안에서 텍스트 링크처럼 보이게. */
+.prose .os-popup-trigger {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.prose .os-popup-trigger:hover { color: #1d4ed8; }
