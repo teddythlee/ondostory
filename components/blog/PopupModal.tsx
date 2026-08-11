@@ -60,7 +60,7 @@ export default function PopupModal() {
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
-      if (bodyRef.current) bodyRef.current.replaceChildren()
+      body.replaceChildren()
     }
   }, [openId])
 
