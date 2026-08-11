@@ -140,6 +140,15 @@ export default function PostEditor({ post, clusters = [] }: Props) {
     if (res.ok) router.push('/admin')
   }
 
+  // 현재 편집 내용을 임시저장한 뒤 새 탭에서 상세 미리보기를 연다([팝업:]·[메일문의:]가
+  // 실제 상세처럼 렌더). 새 탭을 먼저 열어 팝업 차단을 피하고, 저장 후 주소를 채운다.
+  async function handlePreview() {
+    if (!post) return
+    const w = window.open('', '_blank')
+    await handleSave(false)
+    if (w) w.location.href = `/admin/preview/${post.id}`
+  }
+
   const bodyCharCount = content.replace(/<[^>]+>/g, '').replace(/\s/g, '').length
 
   return (
@@ -169,6 +178,15 @@ export default function PostEditor({ post, clusters = [] }: Props) {
             >
               임시저장
             </button>
+            {post && (
+              <button
+                onClick={handlePreview}
+                disabled={saving}
+                className="text-sm border border-gray-200 px-4 py-1.5 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                미리보기
+              </button>
+            )}
             <button
               onClick={() => handleSave(true)}
               disabled={saving}

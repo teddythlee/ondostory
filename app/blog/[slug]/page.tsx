@@ -9,6 +9,7 @@ import ViewCounter from '@/components/blog/ViewCounter'
 import EmailReveal from '@/components/blog/EmailReveal'
 import PopupModal from '@/components/blog/PopupModal'
 import { getClusterByKey } from '@/lib/clusters'
+import { renderContentTokens } from '@/lib/content-tokens'
 
 export const revalidate = 600
 export const dynamicParams = true
@@ -149,39 +150,7 @@ export default async function PostPage({ params }: Props) {
 
       <article
         className="prose text-gray-800"
-        dangerouslySetInnerHTML={{
-          // 두 개의 콘텐츠 토큰을 순서대로 처리한다(메일 먼저 → 팝업 나중).
-          // 팝업 안에 [메일문의:]가 들어갈 수 있어서, 메일을 먼저 base64 링크로 바꾼 뒤
-          // 그 결과를 팝업 본문으로 감싼다.
-          __html: (() => {
-            let popupN = 0
-            return post.content
-              // [메일문의:주소] 또는 [메일문의:주소|제목] → "메일로 문의" 클릭 링크.
-              // 주소는 base64로 숨겨서 넣는다(스팸봇 방지). 표시 글자는 "메일로 문의".
-              .replace(
-                /\[메일문의:\s*([^\]|]+?)\s*(?:\|\s*([^\]]+?))?\s*\]/g,
-                (_m, email, subj) => {
-                  const enc = btoa(String(email))
-                  const s = (subj ? String(subj) : 'ondostory 문의').replace(/"/g, '&quot;')
-                  return `<a href="#" data-mail="${enc}" data-subj="${s}" class="text-blue-600 underline">메일로 문의</a>`
-                }
-              )
-              // [팝업 label="트리거 문구"] ...작성한 HTML... [/팝업]
-              // → 본문엔 텍스트 링크(트리거)만 남고, 작성한 HTML은 숨겨 두었다가
-              //   클릭 시 사이트 내부 모달로 띄운다(PopupModal). 이탈 없이 안내문·문의를 처리.
-              .replace(
-                /\[팝업\s+label="([^"]+)"\]([\s\S]*?)\[\/팝업\]/g,
-                (_m, label, inner) => {
-                  const id = `os-popup-${++popupN}`
-                  const safeLabel = String(label).replace(/"/g, '&quot;')
-                  return (
-                    `<button type="button" class="os-popup-trigger" data-popup-target="${id}">${safeLabel}</button>` +
-                    `<template id="${id}">${inner}</template>`
-                  )
-                }
-              )
-          })(),
-        }}
+        dangerouslySetInnerHTML={{ __html: renderContentTokens(post.content) }}
       />
       <EmailReveal />
       <PopupModal />
