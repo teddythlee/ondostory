@@ -57,12 +57,8 @@ const nextConfig: NextConfig = {
         destination: '/blog/us-watch-korean-sports-broadcast',
         permanent: true,
       },
-      // car 클러스터 → settlement 병합 (허브 URL 통합)
-      {
-        source: '/guides/car',
-        destination: '/guides/settlement',
-        permanent: true,
-      },
+      // (2026-08) car 클러스터를 7편 규모로 재분리 — 이전 /guides/car→settlement
+      // 308 리다이렉트는 제거했다(안 그러면 새 자동차 허브가 settlement로 튕긴다).
     ]
   },
 };
