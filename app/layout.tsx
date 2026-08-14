@@ -75,6 +75,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* Google AdSense 로더. 검수·광고 게재에 필수 — 라이브 <head>에서 항상 로드되어야 하므로 게이팅하지 않음.
+            소유권 확인용 meta google-adsense-account는 metadata.other에 별도 유지. */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3702232308312218"
+          crossOrigin="anonymous"
+        ></script>
       </head>
       <body className="min-h-full flex flex-col">{children}</body>
       {process.env.NODE_ENV === 'production' && <GoogleAnalytics gaId="G-MT2SNQRFHC" />}
