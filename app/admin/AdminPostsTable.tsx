@@ -103,7 +103,7 @@ export default function AdminPostsTable({ posts, clusters, gscBySlug = {} }: { p
               {!clusterMode && <th className="px-4 py-3 text-right w-[7%]">조회수</th>}
               {!clusterMode && <th className="px-4 py-3 text-right w-[7%]" title="최근 90일 GSC 노출수">노출</th>}
               {!clusterMode && <th className="px-4 py-3 text-right w-[7%]" title="최근 90일 GSC 평균 순위(낮을수록 상위)">순위</th>}
-              <th className="px-4 py-3 text-left w-[9%]">날짜</th>
+              <th className="px-4 py-3 text-left w-[9%]">수정일</th>
               <th className="px-4 py-3 text-right w-[15%]">작업</th>
             </tr>
           </thead>
@@ -161,8 +161,8 @@ export default function AdminPostsTable({ posts, clusters, gscBySlug = {} }: { p
                       : <span className="text-gray-400">—</span>}
                   </td>
                 )}
-                <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
-                  {format(new Date(post.created_at), 'yy.MM.dd', { locale: ko })}
+                <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap" title={`작성 ${format(new Date(post.created_at), 'yy.MM.dd', { locale: ko })}`}>
+                  {format(new Date(post.updated_at ?? post.created_at), 'yy.MM.dd', { locale: ko })}
                 </td>
                 <td className="px-4 py-4 text-right whitespace-nowrap">
                   <Link href={`/admin/posts/${post.id}`} className="text-sm text-blue-500 hover:underline mr-3">편집</Link>
