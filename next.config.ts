@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
         destination: '/blog/dami-dental-hawaiian-garden-review',
         permanent: true,
       },
+      {
+        // GSC 404로 잡힌 실제 옛 슬러그(it-is 버전) — 위 it-s 항목과 문자열이 달라 따로 필요
+        source: '/blog/review-of-a-visit-to-la-palma-dami-dental-a-dentist-who-would-like-to-visit-again-even-if-it-is-far-away',
+        destination: '/blog/dami-dental-hawaiian-garden-review',
+        permanent: true,
+      },
       // 축구팀 신체검사 글: 발행 후 슬러그 변경(us-high-school-soccer-team → sports-physical-exer-irvine)
       {
         source: '/blog/us-high-school-soccer-team',
