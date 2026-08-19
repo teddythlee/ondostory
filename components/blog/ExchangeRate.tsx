@@ -47,7 +47,10 @@ export default function ExchangeRate() {
         const val = Math.round(hit.rate * amt)
         const baseLabel = base === 'USD' ? `${amt}달러` : `${amt} ${base}`
         const valLabel = sym === 'KRW' ? `₩${val.toLocaleString()}` : `${val.toLocaleString()} ${sym}`
-        el.textContent = `${baseLabel} ≈ ${valLabel} (${hit.date} 기준)`
+        // data-mode=value → 원화 금액만(예: "약 ₩41,700"). 기본 → "1달러 ≈ ₩1,391 (날짜)".
+        el.textContent = el.dataset.mode === 'value'
+          ? `약 ${valLabel}`
+          : `${baseLabel} ≈ ${valLabel} (${hit.date} 기준)`
         el.title = 'Frankfurter(ECB) 실시간 환율'
       })
     })()

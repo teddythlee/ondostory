@@ -44,4 +44,13 @@ export function renderContentTokens(content: string): string {
         return `<span class="os-fx" data-base="${b}" data-symbol="${s}" data-amount="1">${fallback}</span>`
       }
     )
+    // [원화 30] → 30달러를 실시간 환율로 곱해 원화 금액만 보여준다(예: "약 ₩41,700").
+    //   본문에 나오는 달러 금액을 원화로 감 잡게 할 때. (ExchangeRate가 data-mode=value로 처리)
+    .replace(
+      /\[원화\s+([\d,]+(?:\.\d+)?)\s*\]/g,
+      (_m, amount) => {
+        const amt = String(amount).replace(/,/g, '')
+        return `<span class="os-fx" data-base="USD" data-symbol="KRW" data-amount="${amt}" data-mode="value">약 원화</span>`
+      }
+    )
 }
