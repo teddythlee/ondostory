@@ -8,6 +8,7 @@ import RelatedPosts from '@/components/blog/RelatedPosts'
 import ViewCounter from '@/components/blog/ViewCounter'
 import EmailReveal from '@/components/blog/EmailReveal'
 import PopupModal from '@/components/blog/PopupModal'
+import ExchangeRate from '@/components/blog/ExchangeRate'
 import { getClusterByKey } from '@/lib/clusters'
 import { renderContentTokens } from '@/lib/content-tokens'
 
@@ -154,6 +155,7 @@ export default async function PostPage({ params }: Props) {
       />
       <EmailReveal />
       <PopupModal />
+      <ExchangeRate />
 
       {cluster && (
         <Link

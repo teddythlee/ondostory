@@ -32,4 +32,16 @@ export function renderContentTokens(content: string): string {
         )
       }
     )
+    // [환율] 또는 [환율:USD KRW] → 실시간 환율 텍스트. 매 페이지 로드 시 Frankfurter(ECB,
+    //   키 불필요)에서 최신값을 받아 채운다(ExchangeRate 컴포넌트). 초기 HTML엔 fallback
+    //   텍스트가 들어가 크롤러/실패 시에도 의미가 유지된다(AdSense·SEO 안전).
+    .replace(
+      /\[환율(?::\s*([A-Za-z]{3})\s+([A-Za-z]{3}))?\s*\]/g,
+      (_m, base, symbol) => {
+        const b = String(base || 'USD').toUpperCase()
+        const s = String(symbol || 'KRW').toUpperCase()
+        const fallback = b === 'USD' && s === 'KRW' ? '1달러 ≈ 원화(실시간)' : `1 ${b} ≈ ${s}`
+        return `<span class="os-fx" data-base="${b}" data-symbol="${s}" data-amount="1">${fallback}</span>`
+      }
+    )
 }
