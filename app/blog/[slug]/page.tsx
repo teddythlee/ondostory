@@ -95,7 +95,7 @@ export default async function PostPage({ params }: Props) {
     // sameAs: 저자가 운영하는 프로필을 연결해 엔티티(저자 정체성)를 묶는다.
     author: {
       '@type': 'Person',
-      name: '온도스토리',
+      name: 'Theo',
       url: `${siteUrl}/blog/about`,
       sameAs: social,
     },
@@ -137,7 +137,7 @@ export default async function PostPage({ params }: Props) {
         </h1>
         <div className="text-sm text-gray-400 flex flex-wrap items-center gap-x-2">
           {/* 저자 표기(byline) — 구글은 스키마를 페이지에 보이는 내용과 교차확인한다(E-E-A-T). */}
-          <Link href="/blog/about" className="text-gray-600 hover:text-gray-900 font-medium">온도스토리</Link>
+          <Link href="/blog/about" className="text-gray-600 hover:text-gray-900 font-medium">Theo</Link>
           {post.published_at && (
             <>
               <span aria-hidden>·</span>
