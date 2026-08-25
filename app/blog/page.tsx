@@ -15,12 +15,17 @@ interface Props {
 
 type PostMeta = Awaited<ReturnType<typeof getPublishedPosts>>[number]
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const sp = await searchParams
+  // 태그·카테고리·검색 필터 뷰는 얇은 중복 목록이라 색인에서 제외(링크는 따라감).
+  // 기본 /blog 허브와 개별 글(/blog/[slug])은 그대로 색인된다.
+  const isFiltered = Boolean(sp.tag || sp.category || sp.q)
   return {
     title: '온도스토리 | 미국 한인 생활 정보 — 정착·자녀교육·맛집·쇼핑 (오렌지카운티)',
     description:
       '오렌지카운티 기준으로 직접 겪고 정리한 미국 생활 실전 기록. 은행·렌트·서류 같은 정착 절차부터 자녀교육·맛집·쇼핑·근교 여행까지, 검색해도 흩어져 있던 정보를 한곳에.',
     alternates: { canonical: `${siteUrl}/blog` },
+    ...(isFiltered ? { robots: { index: false, follow: true } } : {}),
   }
 }
 
