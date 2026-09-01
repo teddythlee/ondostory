@@ -32,7 +32,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const url = `${siteUrl}/blog/${post.slug}`
 
   return {
-    title: post.meta_title || post.title,
+    // absolute: 루트 레이아웃의 '%s | ondostory' 템플릿을 적용하지 않는다.
+    // 접미사 12자가 모바일 검색결과 잘림선(약 460px) 안쪽 예산을 잡아먹어
+    // 정작 검색어와 맞는 핵심어가 잘려나가기 때문. 목록·소개 페이지는 그대로 둔다.
+    title: { absolute: post.meta_title || post.title },
     description: post.meta_description || post.excerpt,
     openGraph: {
       title: post.meta_title || post.title,

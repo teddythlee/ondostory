@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createPost, getAllPostsAdmin } from '@/lib/posts'
-import { notifyGoogleIndexing, notifyGoogleSitemapPing, notifyIndexNow } from '@/lib/google-indexing'
+import { notifyGoogleIndexing, notifyIndexNow } from '@/lib/google-indexing'
 import { pushToThreads } from '@/lib/social/threads'
 import { requireAdmin } from '@/lib/auth'
 
@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
       const postUrl = `${siteUrl}/blog/${post.slug}`
       await notifyGoogleIndexing(postUrl, 'URL_UPDATED')
       await notifyIndexNow(postUrl)
-      await notifyGoogleSitemapPing(siteUrl)
       // 스레드 게시(Buffer). 내부에서 예외를 삼켜 발행을 블로킹하지 않는다.
       await pushToThreads(post)
     }
