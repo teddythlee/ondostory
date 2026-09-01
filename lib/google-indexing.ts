@@ -57,12 +57,8 @@ export async function notifyIndexNow(url: string) {
   }
 }
 
-export async function notifyGoogleSitemapPing(siteUrl: string) {
-  const sitemapUrl = `${siteUrl}/sitemap.xml`
-  try {
-    await fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`)
-    console.log('Pinged Google sitemap:', sitemapUrl)
-  } catch (err) {
-    console.error('Sitemap ping error:', err)
-  }
-}
+// notifyGoogleSitemapPing 제거됨(2026-08-31).
+// https://www.google.com/ping?sitemap=... 은 구글이 2023년 폐지했고 현재 404를 반환한다.
+// 예외를 삼키는 구조라 무동작인 채로 오래 남아 있었다. 구글에 사이트맵을 알리는 경로는
+// robots.txt의 Sitemap 지시자(app/robots.ts)와 Search Console 등록뿐이며, 둘 다 이미 되어 있다.
+// 색인이 안 붙는 글은 핑이 아니라 내부 링크·사이트맵 lastmod로 풀어야 한다.
