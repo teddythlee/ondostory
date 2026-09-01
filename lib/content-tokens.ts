@@ -4,9 +4,33 @@
 // 바꾼 뒤 그 결과를 팝업 본문으로 감싼다.
 //
 // 클라이언트 측 동작은 EmailReveal(메일 링크)·PopupModal(팝업 모달)이 담당한다.
+// 내부 링크(/blog/·/guides/)에서 rel="nofollow"를 걷어낸다.
+//
+// TipTap의 @tiptap/extension-link 기본 HTMLAttributes가 rel="noopener noreferrer nofollow"라
+// 에디터로 넣은 링크에 내부·외부 구분 없이 nofollow가 붙었다(2026-08-31 기준 본문 내부링크
+// 99개 중 55개). nofollow는 구글에게 링크를 따라가지 말라는 신호라, 크롤 예산이 빠듯한
+// 상태에서 내부 링크가 색인에 전혀 기여하지 못하고 있었다. 실제로 "Discovered - currently
+// not indexed" 상태인 글들은 인바운드 본문 링크가 전부 nofollow였다.
+//
+// 에디터 기본값도 함께 고쳤지만(RichEditor), 이미 저장된 본문은 DB에 그대로 남아 있으므로
+// 렌더 시점에 정리한다. DB 일괄 수정 없이 기존 글과 신규 글을 한 번에 처리한다.
+function unNofollowInternalLinks(html: string): string {
+  return html.replace(/<a\s([^>]*)>/g, (tag, attrs: string) => {
+    if (!/href="\/(?:blog|guides)\//.test(attrs)) return tag
+    const cleaned = attrs
+      .replace(/rel="([^"]*)"/g, (_m, rel: string) => {
+        const kept = rel.split(/\s+/).filter((t) => t && t !== 'nofollow')
+        return kept.length ? `rel="${kept.join(' ')}"` : ''
+      })
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+    return `<a ${cleaned}>`
+  })
+}
+
 export function renderContentTokens(content: string): string {
   let popupN = 0
-  return content
+  return unNofollowInternalLinks(content)
     // [메일문의:주소] 또는 [메일문의:주소|제목] → "메일로 문의" 클릭 링크.
     // 주소는 base64로 숨겨서 넣는다(스팸봇 방지). 표시 글자는 "메일로 문의".
     .replace(
