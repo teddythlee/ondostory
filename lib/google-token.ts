@@ -3,7 +3,7 @@
 // We sign the JWT assertion ourselves with Web Crypto (crypto.subtle) and exchange
 // it at the Google OAuth token endpoint, because google-auth-library fails on the
 // Workers runtime ("Could not refresh access token"). This is the same approach
-// proven in lib/gsc.ts, extracted here so the Indexing API path can reuse it.
+// Web Crypto OAuth helper kept for Google APIs that require a service-account token.
 //
 // Env is read inside the function (not at module load) for Workers timing.
 

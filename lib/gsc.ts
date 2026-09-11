@@ -1,6 +1,6 @@
 // Google Search Console (Search Analytics) reader.
-// Reuses the existing GOOGLE_SERVICE_ACCOUNT_KEY service account (same one as
-// the Indexing API) with a read-only scope. The service account is added to the
+// Uses the GOOGLE_SERVICE_ACCOUNT_KEY service account with a read-only scope.
+// The service account is added to the
 // GSC property `https://www.ondostory.com/` with Full permission.
 //
 // Auth is done with Web Crypto (crypto.subtle), NOT google-auth-library, because

@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(post.updated_at),
     changeFrequency: 'weekly',
     priority: 0.8,
+    images: post.cover_image ? [post.cover_image] : undefined,
   }))
 
   const staticPageEntries: MetadataRoute.Sitemap = STATIC_PAGE_SLUGS.map((slug) => ({
@@ -28,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 클러스터 허브(필러) 페이지들 — 색인 우선순위를 높게 준다.
   const clusterEntries: MetadataRoute.Sitemap = clusters.map((c) => ({
     url: `${siteUrl}/guides/${c.key}`,
-    lastModified: new Date(),
+    lastModified: new Date(c.updated_at),
     changeFrequency: 'weekly',
     priority: 0.9,
   }))

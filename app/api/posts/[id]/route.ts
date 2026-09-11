@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { updatePost, deletePost } from '@/lib/posts'
-import { notifyGoogleIndexing, notifyIndexNow } from '@/lib/google-indexing'
+import { notifyIndexNow } from '@/lib/google-indexing'
 import { pushToThreads } from '@/lib/social/threads'
 import { requireAdmin } from '@/lib/auth'
 
@@ -24,7 +24,6 @@ export async function PATCH(req: NextRequest, { params }: Props) {
     const postUrl = `${siteUrl}/blog/${post.slug}`
 
     if (post.status === 'published') {
-      await notifyGoogleIndexing(postUrl, 'URL_UPDATED')
       await notifyIndexNow(postUrl)
       // 스레드 게시(Buffer). 내부에서 예외를 삼켜 발행을 블로킹하지 않는다.
       // 재편집(published→published)에도 unique(post_id, platform)로 중복 게시가 막힌다.
@@ -54,7 +53,7 @@ export async function DELETE(req: NextRequest, { params }: Props) {
       revalidatePath(`/blog/${post.slug}`)
       revalidatePath('/blog')
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
-      await notifyGoogleIndexing(`${siteUrl}/blog/${post.slug}`, 'URL_DELETED')
+      await notifyIndexNow(`${siteUrl}/blog/${post.slug}`)
     }
 
     return NextResponse.json({ success: true })
