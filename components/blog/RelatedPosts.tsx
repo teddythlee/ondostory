@@ -1,36 +1,31 @@
-import Link from 'next/link'
 import type { PostMeta } from '@/types'
-
-function seededShuffle<T>(arr: T[], seed: string): T[] {
-  const copy = [...arr]
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
-  for (let i = copy.length - 1; i > 0; i--) {
-    hash = (hash * 1664525 + 1013904223) >>> 0
-    const j = hash % (i + 1);
-    [copy[i], copy[j]] = [copy[j], copy[i]]
-  }
-  return copy
-}
+import TrackedLink from '@/components/analytics/TrackedLink'
+import { getRelatedPosts, getRecommendationReason } from '@/lib/post-navigation'
 
 export default function RelatedPosts({ current, all }: { current: PostMeta; all: PostMeta[] }) {
   const others = all.filter(p => p.id !== current.id)
   if (others.length === 0) return null
 
-  // 태그 겹치는 글 우선, 나머지는 랜덤으로 채워서 최대 3개
-  const tagged = others.filter(p => p.tags.some(t => current.tags.includes(t)))
-  const untagged = seededShuffle(others.filter(p => !p.tags.some(t => current.tags.includes(t))), current.id)
-  const picks = [...tagged, ...untagged].slice(0, 3)
+  const picks = getRelatedPosts(current, all)
 
   return (
-    <section className="mt-16 pt-10 border-t border-gray-100">
-      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-5">다른 글 보기</h3>
-      <ul className="space-y-3">
-        {picks.map(post => (
+    <section className="mt-10 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-white p-5 sm:p-6">
+      <p className="text-xs font-semibold text-blue-500 mb-1">다음 단계</p>
+      <h2 className="font-display text-xl text-gray-900 mb-1">이어서 읽으면 좋은 글</h2>
+      <p className="text-sm text-gray-500 mb-5">방금 읽은 내용과 같은 흐름에서 필요한 정보를 골랐습니다.</p>
+      <ol className="space-y-3">
+        {picks.map((post, index) => (
           <li key={post.id}>
-            <Link
+            <TrackedLink
               href={`/blog/${post.slug}`}
-              className="flex items-center gap-3 group"
+              eventName="internal_recommendation_click"
+              eventParams={{
+                source_slug: current.slug,
+                target_slug: post.slug,
+                link_location: 'article_related',
+                recommendation_position: index + 1,
+              }}
+              className="flex items-center gap-3 rounded-xl bg-white p-3 border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all group"
             >
               {post.cover_image ? (
                 <img src={post.cover_image} alt={post.title} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
@@ -39,13 +34,17 @@ export default function RelatedPosts({ current, all }: { current: PostMeta; all:
                   📝
                 </div>
               )}
-              <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
-                {post.title}
+              <span className="flex-1 min-w-0">
+                <span className="block text-[11px] text-blue-500 mb-0.5">{getRecommendationReason(current, post)}</span>
+                <span className="block text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                  {post.title}
+                </span>
               </span>
-            </Link>
+              <span className="text-blue-300 group-hover:text-blue-500 transition-colors" aria-hidden>→</span>
+            </TrackedLink>
           </li>
         ))}
-      </ul>
+      </ol>
     </section>
   )
 }

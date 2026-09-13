@@ -11,6 +11,7 @@ import PopupModal from '@/components/blog/PopupModal'
 import ExchangeRate from '@/components/blog/ExchangeRate'
 import { getClusterByKey } from '@/lib/clusters'
 import { renderContentTokens } from '@/lib/content-tokens'
+import TrackedLink from '@/components/analytics/TrackedLink'
 
 export const revalidate = 600
 export const dynamicParams = true
@@ -160,10 +161,18 @@ export default async function PostPage({ params }: Props) {
       <PopupModal />
       <ExchangeRate />
 
+      <RelatedPosts current={post} all={allPosts} />
+
       {cluster && (
-        <Link
+        <TrackedLink
           href={`/guides/${cluster.key}`}
-          className="mt-10 flex items-center gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 px-5 py-5 hover:border-blue-300 hover:bg-blue-50 transition-colors group"
+          eventName="guide_click"
+          eventParams={{
+            source_slug: post.slug,
+            target_cluster: cluster.key,
+            link_location: 'article_after_recommendations',
+          }}
+          className="mt-6 flex items-center gap-4 rounded-2xl border border-gray-100 bg-gray-50 px-5 py-5 hover:border-blue-200 hover:bg-blue-50/50 transition-colors group"
         >
           <span className="text-3xl">{cluster.emoji}</span>
           <span className="flex-1">
@@ -174,10 +183,8 @@ export default async function PostPage({ params }: Props) {
             <span className="block text-xs text-gray-500 mt-0.5">{cluster.tagline}</span>
           </span>
           <span className="text-blue-300 group-hover:text-blue-500 transition-colors text-lg">→</span>
-        </Link>
+        </TrackedLink>
       )}
-
-      <RelatedPosts current={post} all={allPosts} />
 
       {post.tags.length > 0 && (
         <div className="mt-12 pt-6 border-t border-gray-100">

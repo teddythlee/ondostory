@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getClusters } from '@/lib/clusters'
 import { getPublishedPosts } from '@/lib/posts'
+import TrackedLink from '@/components/analytics/TrackedLink'
 
 // 클러스터 변경이 즉시 반영되도록 동적 렌더(저트래픽 허브라 비용 무시).
 export const dynamic = 'force-dynamic'
@@ -39,16 +40,22 @@ export default async function GuidesIndexPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {clusters.map((c) => (
-            <Link
+            <TrackedLink
               key={c.id}
               href={`/guides/${c.key}`}
+              eventName="guide_click"
+              eventParams={{
+                source_page: 'guides_index',
+                target_cluster: c.key,
+                link_location: 'guide_card',
+              }}
               className="group rounded-2xl border border-gray-100 bg-gray-50 p-6 hover:border-blue-200 hover:bg-blue-50/50 transition-colors"
             >
               <div className="text-3xl mb-3">{c.emoji}</div>
               <h2 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">{c.title}</h2>
               <p className="text-sm text-gray-500 line-clamp-2">{c.tagline}</p>
-              <p className="text-xs text-gray-400 mt-3">{countByCluster[c.key] ?? 0}개의 글</p>
-            </Link>
+              <p className="text-xs text-gray-400 mt-3">{countByCluster[c.key] ?? 0}개의 실전 글 · 순서대로 보기 <span aria-hidden>→</span></p>
+            </TrackedLink>
           ))}
         </div>
       )}
