@@ -27,6 +27,7 @@ export default async function QualityPage() {
   const missingTrustPages = REQUIRED_TRUST_PAGES.filter((slug) => !publishedTrustPages.has(slug))
   const resolved = rows.filter((row) => row.work?.state === 'resolved').length
   const monitoring = rows.filter((row) => row.work?.state === 'monitoring').length
+  const imageRiskPosts = rows.filter((row) => row.metrics.unknownImageCount > 0 || row.metrics.externalImageCount > 0 || row.metrics.duplicateImageCount > 0).length
   const latestLabel = latestRun?.completed_at
     ? new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Los_Angeles' }).format(new Date(latestRun.completed_at))
     : null
@@ -62,13 +63,22 @@ export default async function QualityPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
           <Kpi label="위험" value={latestRun?.critical_count ?? 0} color="text-red-600" />
           <Kpi label="점검" value={latestRun?.watch_count ?? 0} color="text-amber-600" />
           <Kpi label="자동 점검 통과" value={latestRun?.healthy_count ?? 0} color="text-green-600" />
           <Kpi label="성과 관찰" value={monitoring} color="text-blue-600" />
           <Kpi label="해결됨" value={resolved} color="text-gray-900" />
+          <Kpi label="이미지 점검" value={imageRiskPosts} color="text-purple-600" />
         </div>
+
+        <section className="rounded-xl border border-purple-200 bg-purple-50 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 className="font-semibold text-gray-900">이미지 출처·사용권 감사</h2>
+            <p className="text-sm text-gray-600 mt-1">촬영자, 원본 페이지, 라이선스 증빙이 없으면 글을 해결 처리하지 않습니다.</p>
+          </div>
+          <Link href="/admin/quality/images" className="text-sm font-medium text-purple-700 hover:text-purple-900">자산대장 열기 →</Link>
+        </section>
 
         <section className={`rounded-xl border p-5 ${missingTrustPages.length === 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">

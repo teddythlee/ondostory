@@ -9,6 +9,8 @@ interface UnsplashResult {
   alt: string
   credit: string
   creditUrl: string
+  license: string
+  source: string
 }
 
 interface Props {
@@ -55,6 +57,22 @@ export default function ImageSearchPanel({ onInsert }: Props) {
     search(query, next)
   }
 
+  async function insertWithProvenance(img: UnsplashResult) {
+    setError('')
+    try {
+      const res = await fetch('/api/quality/images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: img.fullUrl, sourceUrl: img.creditUrl, creator: img.credit, licenseName: img.license }),
+      })
+      const data = (await res.json().catch(() => ({}))) as { error?: string }
+      if (!res.ok) throw new Error(data.error || '이미지 출처 등록 실패')
+      onInsert(img.fullUrl, img.alt)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '이미지 출처 등록 실패')
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
       <h3 className="font-semibold text-sm text-gray-700">무료 이미지 검색</h3>
@@ -85,7 +103,7 @@ export default function ImageSearchPanel({ onInsert }: Props) {
               <button
                 key={img.id}
                 type="button"
-                onClick={() => onInsert(img.fullUrl, img.alt)}
+                onClick={() => insertWithProvenance(img)}
                 className="group relative aspect-video overflow-hidden rounded-lg border border-gray-100 hover:border-blue-400 transition-colors"
                 title={`${img.alt} — by ${img.credit}`}
               >

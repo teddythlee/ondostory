@@ -1,5 +1,6 @@
 import type { Post } from '@/types'
 import type { Ga4PageMetrics } from './ga4'
+import type { ImageAsset } from './image-provenance'
 
 export type QualityRisk = 'critical' | 'watch' | 'healthy'
 
@@ -32,6 +33,9 @@ export interface QualityReview {
     genericPatternCount: number
     externalLinkCount: number
     imageCount: number
+    unknownImageCount: number
+    externalImageCount: number
+    duplicateImageCount: number
     maxSimilarity: number
     similarSlug: string | null
     daysSinceUpdate: number
@@ -51,6 +55,7 @@ interface PreparedPost {
   genericPatternCount: number
   externalLinkCount: number
   imageCount: number
+  imageUrls: string[]
   fingerprint: string
 }
 
@@ -97,6 +102,8 @@ function hashText(value: string): string {
 
 function prepare(post: Post): PreparedPost {
   const text = plainText(post.content)
+  const bodyImages = [...post.content.matchAll(/<img\b[^>]+src=["']([^"']+)/gi)].map((match) => match[1].replace(/&amp;/g, '&'))
+  const imageUrls = [...new Set([post.cover_image, ...bodyImages].filter((url): url is string => !!url))]
   return {
     post,
     text,
@@ -106,7 +113,8 @@ function prepare(post: Post): PreparedPost {
     specificitySignals: countMatches(text, /(?:\$|USD|달러|원|%|마일|분|시간|개월|년|월|일|번|개|명|시|[0-9][0-9,.]*)/gi),
     genericPatternCount: countMatches(text, /자주 묻는 질문|FAQ|결론적으로|정리하자면|마무리하며|도움이 되셨기를|상황에 따라 다를 수|전문가와 상담/gi),
     externalLinkCount: countMatches(post.content, /<a\b[^>]+href=["']https?:/gi),
-    imageCount: countMatches(post.content, /<img\b/gi),
+    imageCount: imageUrls.length,
+    imageUrls,
     fingerprint: hashText(text.toLowerCase().replace(/\s+/g, ' ')),
   }
 }
@@ -119,8 +127,17 @@ export function evaluateContentQuality(
   posts: Post[],
   gscBySlug: Record<string, SearchMetrics> = {},
   ga4BySlug: Record<string, Ga4PageMetrics> = {},
+  imageAssets: Record<string, ImageAsset> = {},
 ): QualityReview[] {
   const prepared = posts.filter((post) => post.status === 'published').map(prepare)
+  const imagePostCounts = new Map<string, Set<string>>()
+  for (const item of prepared) {
+    for (const imageUrl of item.imageUrls) {
+      const postIds = imagePostCounts.get(imageUrl) || new Set<string>()
+      postIds.add(item.post.id)
+      imagePostCounts.set(imageUrl, postIds)
+    }
+  }
 
   return prepared.map((item) => {
     const { post } = item
@@ -136,6 +153,11 @@ export function evaluateContentQuality(
     }
 
     const factors: QualityFactor[] = []
+    const unknownImageCount = item.imageUrls.filter((url) => imageAssets[url]?.rights_status !== 'verified').length
+    const externalImageCount = item.imageUrls.filter((url) => {
+      try { return new URL(url).hostname !== 'jcdznrqhpaezhleqxayt.supabase.co' } catch { return true }
+    }).length
+    const duplicateImageCount = item.imageUrls.filter((url) => (imagePostCounts.get(url)?.size || 0) > 1).length
     if (item.text.length < 1200) addFactor(factors, 'thin', '본문이 얇음', 24, `${item.text.length.toLocaleString()}자`)
     else if (item.text.length < 1800) addFactor(factors, 'short', '설명이 다소 짧음', 12, `${item.text.length.toLocaleString()}자`)
 
@@ -160,6 +182,9 @@ export function evaluateContentQuality(
 
     if (!post.meta_description?.trim()) addFactor(factors, 'meta', '메타 설명 없음', 5, '검색 결과 설명을 직접 작성하세요.')
     if (!post.cluster) addFactor(factors, 'cluster', '주제 연결 없음', 4, '관련 가이드에 연결되지 않았습니다.')
+    if (unknownImageCount > 0) addFactor(factors, 'image_rights', '이미지 사용권 미확인', 12, `${unknownImageCount}개 이미지의 촬영자·라이선스 증빙이 없습니다.`)
+    if (externalImageCount > 0) addFactor(factors, 'image_hotlink', '외부 이미지 직접 연결', 5, `${externalImageCount}개 이미지를 외부 서버에서 직접 불러옵니다.`)
+    if (duplicateImageCount > 0) addFactor(factors, 'image_duplicate', '다른 글과 이미지 중복', 6, `${duplicateImageCount}개 이미지가 여러 글에 사용됩니다.`)
 
     const daysSinceUpdate = Math.max(0, Math.floor((Date.now() - new Date(post.updated_at || post.created_at).getTime()) / 86_400_000))
     const timeSensitive = /가격|비용|법|규정|보험|관세|입학|갱신|비자|은행|렌트|DMV/i.test(`${post.title} ${post.tags.join(' ')}`)
@@ -189,6 +214,9 @@ export function evaluateContentQuality(
         if (factor.key === 'template') return '상투적인 FAQ·결론 대신 이 주제에 필요한 구조로 바꾸세요.'
         if (factor.key === 'stale') return '현재 가격과 규정을 다시 확인하고 확인 날짜를 표시하세요.'
         if (factor.key === 'structure') return '독자의 행동 순서에 맞춘 소제목을 추가하세요.'
+        if (factor.key === 'image_rights') return '촬영자·원본 페이지·라이선스를 자산대장에 기록하거나 이미지를 교체하세요.'
+        if (factor.key === 'image_hotlink') return '사용권을 확인한 뒤 자체 저장소 사본으로 교체하세요.'
+        if (factor.key === 'image_duplicate') return '글의 실제 내용에 맞는 고유 이미지로 교체하세요.'
         return factor.detail
       })
 
@@ -208,6 +236,9 @@ export function evaluateContentQuality(
         genericPatternCount: item.genericPatternCount,
         externalLinkCount: item.externalLinkCount,
         imageCount: item.imageCount,
+        unknownImageCount,
+        externalImageCount,
+        duplicateImageCount,
         maxSimilarity: Math.round(maxSimilarity * 1000) / 1000,
         similarSlug,
         daysSinceUpdate,

@@ -58,13 +58,14 @@ async function searchPexels(query: string, page: string, key: string): Promise<{
     alt: string
     photographer: string
     photographer_url: string
+    url: string
   }>).map((it) => ({
     id: String(it.id),
     thumbUrl: it.src.medium,
     fullUrl: it.src.large,
     alt: it.alt || '',
     credit: it.photographer,
-    creditUrl: it.photographer_url,
+    creditUrl: it.url,
     license: 'Pexels License',
     source: 'pexels',
   }))

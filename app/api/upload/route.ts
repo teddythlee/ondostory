@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { getAdminSession } from '@/lib/auth'
+import { registerUploadedImage } from '@/lib/image-provenance'
 
 export async function POST(req: NextRequest) {
   const session = await getAdminSession()
@@ -26,5 +27,12 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const { data } = supabaseAdmin.storage.from('blog-images').getPublicUrl(filename)
+  try {
+    await registerUploadedImage(data.publicUrl)
+  } catch (error) {
+    await supabaseAdmin.storage.from('blog-images').remove([filename])
+    const message = error instanceof Error ? error.message : '이미지 출처대장 등록 실패'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
   return NextResponse.json({ url: data.publicUrl })
 }

@@ -5,7 +5,8 @@ import { getAdminSession } from '@/lib/auth'
 import { runQualityScan } from '@/lib/quality-system'
 
 async function authorize(req: NextRequest): Promise<{ ok: boolean; scheduled: boolean }> {
-  const configured = process.env.DISCOVERY_TOKEN
+  // 배포 환경에 별도 스캔 토큰이 없으면 기존의 서버 작업용 토큰을 재사용한다.
+  const configured = process.env.DISCOVERY_TOKEN || process.env.DRAFT_API_TOKEN
   const auth = req.headers.get('authorization') || ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (configured && token && token === configured) return { ok: true, scheduled: true }

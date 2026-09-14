@@ -4,6 +4,7 @@ import { getGscPageMap } from './gsc'
 import { getGa4PageMap } from './ga4'
 import { evaluateContentQuality, type QualityFactor, type QualityRisk, type QualityReview } from './content-quality'
 import type { Ga4PageMetrics } from './ga4'
+import { syncImageInventory } from './image-provenance'
 
 export type QualityWorkState = 'queued' | 'improving' | 'monitoring' | 'resolved'
 
@@ -104,7 +105,8 @@ export async function runQualityScan(source: 'manual' | 'scheduled'): Promise<Qu
       getGscPageMap().catch(() => ({})),
       getGa4PageMap().catch(() => ({} as Record<string, Ga4PageMetrics>)),
     ])
-    const reviews = evaluateContentQuality(posts, gscBySlug, ga4BySlug)
+    const imageAssets = await syncImageInventory(posts)
+    const reviews = evaluateContentQuality(posts, gscBySlug, ga4BySlug, imageAssets)
 
     if (reviews.length > 0) {
       const { error: reviewError } = await supabaseAdmin
@@ -199,6 +201,20 @@ export async function updateQualityWorkItem(
   const manualChecks = input.manualChecks || EMPTY_MANUAL_CHECKS
   if (input.state === 'resolved' && Object.values(manualChecks).some((checked) => !checked)) {
     throw new Error('해결 처리하려면 네 가지 사람 검수를 모두 완료해야 합니다.')
+  }
+  if (input.state === 'resolved') {
+    const { data: latestReview, error: reviewError } = await supabaseAdmin
+      .from('content_quality_reviews')
+      .select('metrics')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (reviewError) throw reviewError
+    const metrics = latestReview?.metrics as QualityReview['metrics'] | undefined
+    if ((metrics?.unknownImageCount || 0) > 0) {
+      throw new Error('해결 처리하려면 이미지 자산대장의 사용권 미확인 항목을 먼저 처리하고 다시 점검해야 합니다.')
+    }
   }
   const values = {
     post_id: postId,

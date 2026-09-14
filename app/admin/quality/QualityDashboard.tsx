@@ -19,7 +19,7 @@ const RISK_STYLE = {
 
 export default function QualityDashboard({ initialRows }: { initialRows: QualityDashboardRow[] }) {
   const [rows, setRows] = useState(initialRows)
-  const [filter, setFilter] = useState<'priority' | 'critical' | 'watch' | 'healthy' | 'resolved'>('priority')
+  const [filter, setFilter] = useState<'priority' | 'critical' | 'watch' | 'healthy' | 'images' | 'resolved'>('priority')
   const [query, setQuery] = useState('')
   const [savingId, setSavingId] = useState<string | null>(null)
 
@@ -27,8 +27,9 @@ export default function QualityDashboard({ initialRows }: { initialRows: Quality
     const q = query.trim().toLowerCase()
     return rows
       .filter((row) => {
-        if (filter === 'resolved') return row.work?.state === 'resolved'
-        if (filter !== 'priority' && row.risk_level !== filter) return false
+        if (filter === 'resolved' && row.work?.state !== 'resolved') return false
+        if (filter === 'images' && !(row.metrics.unknownImageCount > 0 || row.metrics.externalImageCount > 0 || row.metrics.duplicateImageCount > 0)) return false
+        if (filter !== 'priority' && filter !== 'resolved' && filter !== 'images' && row.risk_level !== filter) return false
         if (filter === 'priority' && row.work?.state === 'resolved') return false
         return !q || row.title.toLowerCase().includes(q) || row.current_slug.toLowerCase().includes(q)
       })
@@ -67,6 +68,7 @@ export default function QualityDashboard({ initialRows }: { initialRows: Quality
             ['critical', '위험'],
             ['watch', '점검'],
             ['healthy', '자동 통과'],
+            ['images', '이미지 점검'],
             ['resolved', '해결됨'],
           ] as const).map(([key, label]) => (
             <button
@@ -155,6 +157,9 @@ export default function QualityDashboard({ initialRows }: { initialRows: Quality
                       <span>본문 {row.metrics.contentChars.toLocaleString()}자</span>
                       <span>경험 신호 {row.metrics.evidenceSignals}</span>
                       <span>구체성 {row.metrics.specificitySignals}</span>
+                      {row.metrics.unknownImageCount > 0 && <span className="text-purple-600">사용권 미확인 {row.metrics.unknownImageCount}</span>}
+                      {row.metrics.externalImageCount > 0 && <span>외부 연결 {row.metrics.externalImageCount}</span>}
+                      {row.metrics.duplicateImageCount > 0 && <span>중복 이미지 {row.metrics.duplicateImageCount}</span>}
                       {gsc && <span>GSC 노출 {gsc.impressions.toLocaleString()} · 클릭 {gsc.clicks}</span>}
                       {ga4 && <span>GA4 세션 {ga4.sessions} · 참여율 {(ga4.engagementRate * 100).toFixed(0)}%</span>}
                       {row.metrics.similarSlug && row.metrics.maxSimilarity >= 0.075 && <span>유사: {row.metrics.similarSlug}</span>}
