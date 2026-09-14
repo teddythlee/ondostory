@@ -123,6 +123,7 @@ const updates = []
     values: {
       cover_image: newCover,
       content,
+      meta_title: '미국 자녀 은행계좌 만들기 | 체이스 틴 계좌 실제 개설',
       meta_description: '미국에서 11학년 자녀의 체이스 하이스쿨 체킹을 직접 개설한 순서와 준비물. 2026년 $125 오퍼 만료일, 대안 계좌, 데빗카드와 크레딧의 차이, UTMA 세금·FAFSA까지 공식 출처로 확인했다.',
     },
     removedAssets: [oldCover, oldBonusGraphic],
@@ -162,6 +163,7 @@ const updates = []
     values: {
       title: '미국 아파트 렌트 vs 하우스 렌트 | 둘 다 살아보고 달랐던 비용·관리',
       content,
+      meta_title: '미국 아파트 vs 하우스 렌트 | 실제 비용·관리 차이',
       meta_description: '오렌지카운티에서 아파트와 하우스 렌트를 모두 겪고 비교했다. 실제 월 부대비용, 심사 기준, 관리·소음 차이와 캘리포니아 보증금 한도를 공식 자료로 확인했다.',
     },
     removedAssets: [],
@@ -184,6 +186,7 @@ const updates = []
     values: {
       title: '코스트코 소고기 라벨 해석 | 불고기·국거리·구이용 영어 부위 찾기',
       content,
+      meta_title: '코스트코 소고기 라벨 | 불고기·국거리 영어 부위',
       meta_description: '터스틴 코스트코 정육 라벨을 직접 찍어 미국식 소고기 부위를 한식 용도로 해석했다. 불고기·국거리·장조림·구이용 라벨과 USDA 등급을 실제 팩 기준으로 찾는다.',
     },
     removedAssets: [],
@@ -224,6 +227,7 @@ const updates = []
     values: {
       title: '코스트코 생선 고르기 | 락피시 매운탕 후기와 회로 먹지 않은 이유',
       content,
+      meta_title: '코스트코 생선 고르기 | 락피시 매운탕 실제 후기',
       meta_description: '터스틴 코스트코 락피시로 매운탕을 끓여본 결과와 대구·틸라피아·브란지노·연어 선택 기준. 라벨 가격, 재냉동, 생식과 145°F 가열 기준을 공식 자료로 확인했다.',
     },
     removedAssets: [],
