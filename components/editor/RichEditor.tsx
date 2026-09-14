@@ -103,7 +103,13 @@ const RichEditor = forwardRef<RichEditorHandle, { content: string; onChange: (ht
         Underline,
         TextAlign.configure({ types: ['heading', 'paragraph'] }),
         Highlight.configure({ multicolor: false }),
-        Link.configure({ openOnClick: false }),
+        // HTMLAttributes를 지정하지 않으면 확장 기본값이 rel="noopener noreferrer nofollow"라
+        // 내부 링크에도 nofollow가 붙어 구글이 따라가지 않는다(색인 누락 원인). nofollow는
+        // 광고·신뢰할 수 없는 링크에 쓰는 표시이지 일반 링크에 붙일 것이 아니라 뺀다.
+        Link.configure({
+          openOnClick: false,
+          HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
+        }),
         Image.configure({ HTMLAttributes: { class: 'rounded-lg' } }),
         Iframe,
         // 표 지원(Table+Row+Header+Cell 번들). resizable=false로 저장 HTML을 깨끗하게(colgroup 미삽입).

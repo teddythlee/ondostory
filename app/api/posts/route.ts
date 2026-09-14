@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createPost, getAllPostsAdmin } from '@/lib/posts'
-import { notifyGoogleIndexing, notifyIndexNow } from '@/lib/google-indexing'
+import { notifyIndexNow } from '@/lib/google-indexing'
 import { pushToThreads } from '@/lib/social/threads'
 import { requireAdmin } from '@/lib/auth'
 
@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
       revalidatePath('/blog')
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ondostory.com'
       const postUrl = `${siteUrl}/blog/${post.slug}`
-      await notifyGoogleIndexing(postUrl, 'URL_UPDATED')
       await notifyIndexNow(postUrl)
       // 스레드 게시(Buffer). 내부에서 예외를 삼켜 발행을 블로킹하지 않는다.
       await pushToThreads(post)

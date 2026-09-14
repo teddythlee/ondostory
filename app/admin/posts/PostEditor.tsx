@@ -124,7 +124,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
       if (!res.ok) throw new Error(data.error)
 
       if (publishNow) setPublished(true)
-      setMessage(shouldPublish ? '✅ 발행되었습니다! Google 인덱싱 요청도 완료.' : '✅ 임시저장 완료')
+      setMessage(shouldPublish ? '✅ 발행되었습니다! 사이트맵 반영·IndexNow 알림 완료.' : '✅ 임시저장 완료')
 
       if (!post) router.push(`/admin/posts/${data.id}`)
     } catch (err) {
@@ -380,7 +380,7 @@ export default function PostEditor({ post, clusters = [] }: Props) {
               </div>
             </div>
             <div className="text-xs text-gray-400 bg-blue-50 rounded-lg p-2">
-              💡 발행 시 Google Indexing API에 자동으로 크롤링 요청이 전송됩니다.
+              💡 발행 시 사이트맵에 반영되고, IndexNow 지원 검색엔진에 URL을 알립니다. Google은 사이트맵·내부 링크로 발견합니다.
             </div>
           </div>
 

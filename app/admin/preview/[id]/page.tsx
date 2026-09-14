@@ -7,6 +7,7 @@ import { getPostByIdAdmin } from '@/lib/posts'
 import { renderContentTokens } from '@/lib/content-tokens'
 import EmailReveal from '@/components/blog/EmailReveal'
 import PopupModal from '@/components/blog/PopupModal'
+import ExchangeRate from '@/components/blog/ExchangeRate'
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -41,6 +42,7 @@ export default async function DraftPreviewPage({ params }: Props) {
       />
       <EmailReveal />
       <PopupModal />
+      <ExchangeRate />
     </div>
   )
 }

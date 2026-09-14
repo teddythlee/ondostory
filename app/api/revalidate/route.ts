@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { notifyGoogleIndexing, notifyIndexNow } from '@/lib/google-indexing'
+import { notifyIndexNow } from '@/lib/google-indexing'
 
 // 온디맨드 갱신 엔드포인트.
 // admin 에디터 저장은 /api/posts가 알아서 revalidate 하지만, 콘텐츠를 SQL이나 외부에서
@@ -11,8 +11,8 @@ import { notifyGoogleIndexing, notifyIndexNow } from '@/lib/google-indexing'
 //   POST /api/revalidate   Authorization: Bearer <DRAFT_API_TOKEN>
 //   body: { "slug": "costco-beef-cuts-korean" }   또는   { "path": "/blog/..." }
 //         slug/path 배열도 허용: { "slugs": ["a","b"] }
-//   { "index": true } 를 함께 주면 Google Indexing API + IndexNow로 크롤 제출까지 한다
-//   (일반 revalidate는 가볍게 유지하려고 index는 opt-in. 병렬 처리라 URL 여러 개여도 지연 ~1-2s).
+//   { "index": true } 를 함께 주면 IndexNow 지원 검색엔진에 URL을 알린다.
+//   Google 일반 블로그 글은 Indexing API 대상이 아니므로 sitemap lastmod·내부 링크로 재크롤시킨다.
 
 export async function POST(req: NextRequest) {
   const configured = process.env.DRAFT_API_TOKEN
@@ -51,9 +51,9 @@ export async function POST(req: NextRequest) {
   for (const p of list) revalidatePath(p)
   revalidatePath('/blog') // 목록/글 순서도 같이 갱신
 
-  // index:true 일 때만 Google Indexing API + IndexNow로 크롤 제출(병렬 allSettled).
+  // index:true 일 때만 IndexNow로 크롤 제출(병렬 allSettled).
   // 각 URL별 실제 응답을 그대로 담아 반환 — 일반 revalidate는 외부 호출 없이 가볍게 유지.
-  type IndexResult = { url: string; google: unknown; indexnow: unknown }
+  type IndexResult = { url: string; indexnow: unknown }
   let indexed: IndexResult[] = []
   if (body.index === true) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ondostory.com'
@@ -62,11 +62,8 @@ export async function POST(req: NextRequest) {
       .map((p) => `${siteUrl}${p}`)
     const settled = await Promise.allSettled(
       blogUrls.map(async (url): Promise<IndexResult> => {
-        const [google, indexnow] = await Promise.all([
-          notifyGoogleIndexing(url, 'URL_UPDATED'),
-          notifyIndexNow(url),
-        ])
-        return { url, google, indexnow }
+        const indexnow = await notifyIndexNow(url)
+        return { url, indexnow }
       })
     )
     indexed = settled

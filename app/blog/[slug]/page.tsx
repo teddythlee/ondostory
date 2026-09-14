@@ -8,8 +8,10 @@ import RelatedPosts from '@/components/blog/RelatedPosts'
 import ViewCounter from '@/components/blog/ViewCounter'
 import EmailReveal from '@/components/blog/EmailReveal'
 import PopupModal from '@/components/blog/PopupModal'
+import ExchangeRate from '@/components/blog/ExchangeRate'
 import { getClusterByKey } from '@/lib/clusters'
 import { renderContentTokens } from '@/lib/content-tokens'
+import TrackedLink from '@/components/analytics/TrackedLink'
 
 export const revalidate = 600
 export const dynamicParams = true
@@ -97,7 +99,7 @@ export default async function PostPage({ params }: Props) {
     // sameAs: 저자가 운영하는 프로필을 연결해 엔티티(저자 정체성)를 묶는다.
     author: {
       '@type': 'Person',
-      name: '온도스토리',
+      name: 'Theo',
       url: `${siteUrl}/blog/about`,
       sameAs: social,
     },
@@ -139,7 +141,7 @@ export default async function PostPage({ params }: Props) {
         </h1>
         <div className="text-sm text-gray-400 flex flex-wrap items-center gap-x-2">
           {/* 저자 표기(byline) — 구글은 스키마를 페이지에 보이는 내용과 교차확인한다(E-E-A-T). */}
-          <Link href="/blog/about" className="text-gray-600 hover:text-gray-900 font-medium">온도스토리</Link>
+          <Link href="/blog/about" className="text-gray-600 hover:text-gray-900 font-medium">Theo</Link>
           {post.published_at && (
             <>
               <span aria-hidden>·</span>
@@ -157,11 +159,20 @@ export default async function PostPage({ params }: Props) {
       />
       <EmailReveal />
       <PopupModal />
+      <ExchangeRate />
+
+      <RelatedPosts current={post} all={allPosts} />
 
       {cluster && (
-        <Link
+        <TrackedLink
           href={`/guides/${cluster.key}`}
-          className="mt-10 flex items-center gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 px-5 py-5 hover:border-blue-300 hover:bg-blue-50 transition-colors group"
+          eventName="guide_click"
+          eventParams={{
+            source_slug: post.slug,
+            target_cluster: cluster.key,
+            link_location: 'article_after_recommendations',
+          }}
+          className="mt-6 flex items-center gap-4 rounded-2xl border border-gray-100 bg-gray-50 px-5 py-5 hover:border-blue-200 hover:bg-blue-50/50 transition-colors group"
         >
           <span className="text-3xl">{cluster.emoji}</span>
           <span className="flex-1">
@@ -172,10 +183,8 @@ export default async function PostPage({ params }: Props) {
             <span className="block text-xs text-gray-500 mt-0.5">{cluster.tagline}</span>
           </span>
           <span className="text-blue-300 group-hover:text-blue-500 transition-colors text-lg">→</span>
-        </Link>
+        </TrackedLink>
       )}
-
-      <RelatedPosts current={post} all={allPosts} />
 
       {post.tags.length > 0 && (
         <div className="mt-12 pt-6 border-t border-gray-100">

@@ -2,13 +2,15 @@
 
 import { useState, useCallback, useRef } from 'react'
 
-interface UnsplashResult {
+interface SearchImageResult {
   id: string
   thumbUrl: string
   fullUrl: string
   alt: string
   credit: string
   creditUrl: string
+  license: string
+  source: string
 }
 
 interface Props {
@@ -17,11 +19,12 @@ interface Props {
 
 export default function ImageSearchPanel({ onInsert }: Props) {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<UnsplashResult[]>([])
+  const [results, setResults] = useState<SearchImageResult[]>([])
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [error, setError] = useState('')
+  const [importingId, setImportingId] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const search = useCallback(async (q: string, p: number) => {
@@ -55,6 +58,26 @@ export default function ImageSearchPanel({ onInsert }: Props) {
     search(query, next)
   }
 
+  async function insertWithProvenance(img: SearchImageResult) {
+    setError('')
+    setImportingId(img.id)
+    try {
+      const res = await fetch('/api/quality/images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: img.fullUrl, sourceUrl: img.creditUrl, creator: img.credit, licenseName: img.license }),
+      })
+      const data = (await res.json().catch(() => ({}))) as { error?: string; imageUrl?: string }
+      if (!res.ok) throw new Error(data.error || '이미지 출처 등록 실패')
+      if (!data.imageUrl) throw new Error('자체 저장 이미지 주소를 받지 못했습니다.')
+      onInsert(data.imageUrl, img.alt)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '이미지 출처 등록 실패')
+    } finally {
+      setImportingId(null)
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
       <h3 className="font-semibold text-sm text-gray-700">무료 이미지 검색</h3>
@@ -85,7 +108,8 @@ export default function ImageSearchPanel({ onInsert }: Props) {
               <button
                 key={img.id}
                 type="button"
-                onClick={() => onInsert(img.fullUrl, img.alt)}
+                onClick={() => insertWithProvenance(img)}
+                disabled={importingId !== null}
                 className="group relative aspect-video overflow-hidden rounded-lg border border-gray-100 hover:border-blue-400 transition-colors"
                 title={`${img.alt} — by ${img.credit}`}
               >
@@ -93,7 +117,7 @@ export default function ImageSearchPanel({ onInsert }: Props) {
                 <img src={img.thumbUrl} alt={img.alt} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-end">
                   <span className="w-full text-[9px] text-white bg-black/50 px-1.5 py-0.5 truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                    {img.credit}
+                    {importingId === img.id ? '저장소로 가져오는 중…' : img.credit}
                   </span>
                 </div>
               </button>

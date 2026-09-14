@@ -1,0 +1,25 @@
+# 주 1회 발행 글의 콘텐츠 품질·GSC·GA4 신호를 함께 스냅샷으로 남긴다.
+# 점수는 Google의 판정이 아니라 보강 우선순위를 정하기 위한 내부 운영 지표다.
+
+name: content-quality-scan
+
+on:
+  schedule:
+    - cron: '45 14 * * 1' # 매주 월요일 UTC 14:45 (GSC daily 이후)
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 콘텐츠 품질 점검 저장
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.ondostory.com' }}
+          DISCOVERY_TOKEN: ${{ secrets.DISCOVERY_TOKEN }}
+        run: |
+          code=$(curl -sS -o response.json -w '%{http_code}' \
+            -X POST "$SITE_URL/api/quality/scan" \
+            -H "Authorization: Bearer $DISCOVERY_TOKEN" \
+            --max-time 180)
+          echo "HTTP $code"; cat response.json; echo
+          [ "$code" = "200" ] || { echo "::error::품질 점검 실패 (HTTP $code)"; exit 1; }

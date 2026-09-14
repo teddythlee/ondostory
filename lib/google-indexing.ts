@@ -1,34 +1,6 @@
-import { getGoogleAccessToken } from './google-token'
-
-const INDEXING_API_URL = 'https://indexing.googleapis.com/v3/urlNotifications:publish'
-const INDEXING_SCOPE = 'https://www.googleapis.com/auth/indexing'
-
-export async function notifyGoogleIndexing(url: string, type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED') {
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-    return { ok: false, skipped: 'GOOGLE_SERVICE_ACCOUNT_KEY 미설정' }
-  }
-
-  try {
-    // Web Crypto based token (google-auth-library fails on the Workers runtime).
-    const accessToken = await getGoogleAccessToken(INDEXING_SCOPE)
-    const response = await fetch(INDEXING_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ url, type }),
-    })
-
-    const result = await response.json()
-    console.log('Google Indexing API response:', result)
-    // 성공 시 result.urlNotificationMetadata, 실패 시 result.error{code,message}
-    return { ok: response.ok, status: response.status, response: result }
-  } catch (err) {
-    console.error('Google Indexing API error:', err)
-    return { ok: false, error: String(err) }
-  }
-}
+// Google Indexing API는 JobPosting 또는 VideoObject 안의 BroadcastEvent 전용이다.
+// 일반 블로그 글은 호출하지 않고 sitemap lastmod·내부 링크·GSC로 발견/재크롤을 관리한다.
+// IndexNow는 이를 지원하는 검색엔진에만 별도로 알린다.
 
 export async function notifyIndexNow(url: string) {
   const apiKey = process.env.INDEXNOW_API_KEY

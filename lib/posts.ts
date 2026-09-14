@@ -77,7 +77,7 @@ export async function getAllPostsAdminMeta(): Promise<PostMeta[]> {
     .from('posts')
     .select(POST_META_COLUMNS)
     .not('slug', 'in', `(${PAGE_SLUGS.join(',')})`)
-    .order('created_at', { ascending: false })
+    .order('updated_at', { ascending: false })
 
   if (error) throw error
   return data || []
