@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/auth'
-import { registerLicensedImage, updateImageAsset, type ImageOrigin, type ImageRightsStatus } from '@/lib/image-provenance'
+import { importLicensedImage, updateImageAsset, type ImageOrigin, type ImageRightsStatus } from '@/lib/image-provenance'
 
 const ORIGINS = new Set<ImageOrigin>(['unknown', 'original', 'licensed_stock', 'ai_generated', 'business_provided'])
 const STATUSES = new Set<ImageRightsStatus>(['unverified', 'verified', 'rejected'])
@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
     if (!body.imageUrl || !body.sourceUrl || !body.creator || !body.licenseName) {
       return NextResponse.json({ error: '이미지·원본·촬영자·라이선스 정보가 모두 필요합니다.' }, { status: 400 })
     }
-    await registerLicensedImage({ imageUrl: body.imageUrl, sourceUrl: body.sourceUrl, creator: body.creator, licenseName: body.licenseName })
-    return NextResponse.json({ ok: true })
+    const imageUrl = await importLicensedImage({ imageUrl: body.imageUrl, sourceUrl: body.sourceUrl, creator: body.creator, licenseName: body.licenseName })
+    return NextResponse.json({ ok: true, imageUrl })
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : '출처 등록 실패' }, { status: 500 })
   }

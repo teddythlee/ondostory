@@ -35,7 +35,7 @@ async function searchOpenverse(query: string, page: string): Promise<{ results: 
     title?: string
   }>).map((it) => ({
     id: it.id,
-    // 직접 CDN URL(flickr/wikimedia)을 쓴다 — Openverse 썸네일 엔드포인트의 하루 한도를 안 건드림.
+    // 검색 미리보기에는 원본 CDN을 쓰고, 에디터 삽입 시 자체 저장소로 가져온다.
     thumbUrl: it.url,
     fullUrl: it.url,
     alt: it.title || '',

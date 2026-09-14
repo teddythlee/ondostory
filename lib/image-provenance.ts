@@ -173,6 +173,67 @@ export async function registerLicensedImage(asset: {
   if (error) throw error
 }
 
+const LICENSED_IMAGE_HOSTS = new Set(['images.pexels.com', 'upload.wikimedia.org'])
+
+function isAllowedLicensedImageHost(hostname: string): boolean {
+  return LICENSED_IMAGE_HOSTS.has(hostname) || hostname.endsWith('.staticflickr.com')
+}
+
+function licensedImageExtension(contentType: string): string {
+  if (contentType.includes('png')) return 'png'
+  if (contentType.includes('webp')) return 'webp'
+  if (contentType.includes('avif')) return 'avif'
+  if (contentType.includes('gif')) return 'gif'
+  return 'jpg'
+}
+
+export async function importLicensedImage(asset: {
+  imageUrl: string
+  sourceUrl: string
+  creator: string
+  licenseName: string
+}): Promise<string> {
+  const imageUrl = new URL(asset.imageUrl)
+  const sourceUrl = new URL(asset.sourceUrl)
+  if (imageUrl.protocol !== 'https:' || !isAllowedLicensedImageHost(imageUrl.hostname)) {
+    throw new Error('허용된 이미지 제공처의 HTTPS 주소가 아닙니다.')
+  }
+  if (sourceUrl.protocol !== 'https:' || !/(?:^|\.)(?:pexels\.com|flickr\.com|wikimedia\.org)$/.test(sourceUrl.hostname)) {
+    throw new Error('확인 가능한 원본 페이지 주소가 아닙니다.')
+  }
+  if (!/^(?:Pexels License|CC0(?:\s|$)|PDM(?:\s|$))/i.test(asset.licenseName.trim())) {
+    throw new Error('자동 가져오기가 허용된 라이선스가 아닙니다.')
+  }
+
+  const response = await fetch(imageUrl, { redirect: 'error' })
+  if (!response.ok) throw new Error(`이미지 다운로드 실패 (${response.status})`)
+  const contentType = response.headers.get('content-type') || ''
+  if (!contentType.startsWith('image/')) throw new Error('이미지 파일 형식이 아닙니다.')
+  const contentLength = Number(response.headers.get('content-length') || 0)
+  if (contentLength > 15_000_000) throw new Error('이미지 파일이 15MB를 초과합니다.')
+  const bytes = new Uint8Array(await response.arrayBuffer())
+  if (bytes.byteLength === 0 || bytes.byteLength > 15_000_000) throw new Error('이미지 파일 크기가 올바르지 않습니다.')
+
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(asset.imageUrl))
+  const hash = [...new Uint8Array(digest)].slice(0, 8).map((byte) => byte.toString(16).padStart(2, '0')).join('')
+  const provider = imageUrl.hostname === 'images.pexels.com' ? 'pexels' : 'openverse'
+  const storagePath = `licensed/${provider}-${hash}.${licensedImageExtension(contentType)}`
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from('blog-images')
+    .upload(storagePath, bytes, { contentType, cacheControl: '31536000', upsert: false })
+  const alreadyExists = uploadError && ('statusCode' in uploadError && uploadError.statusCode === '409' || /already exists|duplicate/i.test(uploadError.message))
+  if (uploadError && !alreadyExists) throw uploadError
+
+  const { data } = supabaseAdmin.storage.from('blog-images').getPublicUrl(storagePath)
+  try {
+    await registerLicensedImage({ ...asset, imageUrl: data.publicUrl })
+  } catch (error) {
+    if (!alreadyExists) await supabaseAdmin.storage.from('blog-images').remove([storagePath])
+    throw error
+  }
+  return data.publicUrl
+}
+
 export async function registerUploadedImage(imageUrl: string) {
   const { host, storagePath } = urlParts(imageUrl)
   const now = new Date().toISOString()

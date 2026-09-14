@@ -76,6 +76,19 @@ function countMatches(text: string, pattern: RegExp): number {
   return [...text.matchAll(pattern)].length
 }
 
+function countExperienceSignals(text: string): number {
+  // 완료된 행동·관찰·결과만 센다. "방문하세요", "직접 확인" 같은 안내문은 제외한다.
+  const completedActions = countMatches(
+    text,
+    /적이 있|써\s?봤|해\s?봤|가\s?봤|타\s?봤|먹어\s?봤|다녀왔|겪었|예약했|방문했|사용했|이용했|구매했|주문했|결제했|가입했|신청했|교체했|선택했|비교했|확인했|시작했|갈아탔|옮겼|바꿨|포기했|준비했|알아봤|알게 됐|받았|돌려받|샀다|냈다|나왔다|걸렸다|놀랐다|당황했|좋았다|아쉬웠|편했다|불편했다|복잡했다/gi,
+  )
+  const firstPersonResults = countMatches(
+    text,
+    /우리(?:가|도|는| 가족)?[^.!?。！？]{0,50}(?:실제|그랬|쓰는|잡아둔|가입|갱신|선택|수준|냈|샀|받)/gi,
+  )
+  return completedActions + firstPersonResults
+}
+
 function tokenSet(text: string): Set<string> {
   return new Set(text
     .toLowerCase()
@@ -109,7 +122,7 @@ function prepare(post: Post): PreparedPost {
     text,
     tokens: tokenSet(text),
     headingCount: countMatches(post.content, /<h[2-4]\b/gi),
-    evidenceSignals: countMatches(text, /직접|제가|저는|우리 가족|해봤|다녀|사용했|살아보|살았|겪었|결제했|방문했|신청했|구매했|먹어|타봤|받았|선택했/gi),
+    evidenceSignals: countExperienceSignals(text),
     specificitySignals: countMatches(text, /(?:\$|USD|달러|원|%|마일|분|시간|개월|년|월|일|번|개|명|시|[0-9][0-9,.]*)/gi),
     genericPatternCount: countMatches(text, /자주 묻는 질문|FAQ|결론적으로|정리하자면|마무리하며|도움이 되셨기를|상황에 따라 다를 수|전문가와 상담/gi),
     externalLinkCount: countMatches(post.content, /<a\b[^>]+href=["']https?:/gi),
@@ -165,8 +178,12 @@ export function evaluateContentQuality(
     else if (item.evidenceSignals === 1) addFactor(factors, 'experience', '경험 근거가 약함', 15, '경험 표현 1개')
     else if (item.evidenceSignals < 3) addFactor(factors, 'experience', '경험 근거가 다소 약함', 8, `경험 표현 ${item.evidenceSignals}개`)
 
-    const sourceExpected = /총정리|방법|가이드|법|규정|보험|입학|절차|비교|비용|관세|은행|비자|서류/i.test(`${post.title} ${post.tags.join(' ')}`)
-    if (sourceExpected && item.externalLinkCount === 0 && item.evidenceSignals < 3) {
+    const titleAndTags = `${post.title} ${post.tags.join(' ')}`
+    const sourceExpected = /총정리|방법|가이드|규정|보험|입학|절차|비교|비용|관세|은행|비자|서류/i.test(titleAndTags)
+    const authoritativeSourceRequired = /보험|비자|영주권|시민권|법률|규정|세금|관세|은행|금리|의료|건강|입학|DMV|SSN|여권|중계|월드컵|올림픽/i.test(titleAndTags)
+    if (authoritativeSourceRequired && item.externalLinkCount === 0) {
+      addFactor(factors, 'sources', '공식 근거 출처 없음', 12, '변경 가능하거나 중요한 정보인데 확인 가능한 외부 출처가 없습니다.')
+    } else if (sourceExpected && item.externalLinkCount === 0 && item.evidenceSignals < 3) {
       addFactor(factors, 'sources', '근거 출처 확인 필요', 10, '정보형 글인데 외부 근거나 충분한 직접 경험이 보이지 않습니다.')
     }
 
