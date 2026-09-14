@@ -45,6 +45,12 @@ export default async function AdminPage() {
               글감 큐{candidates.length > 0 && <span className="ml-1 text-blue-600 font-semibold">{candidates.length}</span>}
             </Link>
             <Link
+              href="/admin/quality"
+              className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              품질 관리
+            </Link>
+            <Link
               href="/admin/topics"
               className="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
             >
