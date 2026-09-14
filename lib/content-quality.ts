@@ -80,11 +80,11 @@ function countExperienceSignals(text: string): number {
   // 완료된 행동·관찰·결과만 센다. "방문하세요", "직접 확인" 같은 안내문은 제외한다.
   const completedActions = countMatches(
     text,
-    /적이 있|써\s?봤|해\s?봤|가\s?봤|타\s?봤|먹어\s?봤|끓여\s?봤|열어\s?봤|기다려\s?봤|걸어\s?봤|물어\s?봤|다녀왔|겪었|헤맸|착각했|예약했|방문했|사용했|이용했|구매했|주문했|결제했|가입했|신청했|교체했|선택했|비교했|확인했|시작했|계약했|지원했|갈아탔|옮겼|바꿨|포기했|준비했|알아봤|알게 됐|받았|돌려받|찾아봤|찾게 됐|찍어뒀|찍었다|골랐다|택했다|체감했|다녀오|돌아갔|올라갔|사\s?봤|사두었|샀다|냈다|나왔다|들어왔다|걸렸다|망가졌|놀랐다|당황했|좋았다|아쉬웠|편했다|불편했다|복잡했다/gi,
+    /적이 있|써\s?봤|해\s?봤|가\s?봤|타\s?봤|먹어\s?봤|시켜\s?봤|끓여\s?봤|열어\s?봤|기다려\s?봤|걸어\s?봤|물어\s?봤|다녀왔|겪었|헤맸|착각했|들렀|먹었|예약했|방문했|사용했|이용했|구매했|주문했|결제했|가입했|신청했|신청해서\s?썼|교체했|선택했|비교했|확인했|시작했|계약했|지원했|갱신했|갱신하면서|잡았다|끝냈|받아\s?왔|갈아탔|옮겼|바꿨|포기했|준비했|알아봤|알게 됐|받았|돌려받|찾아봤|찾게 됐|찍어뒀|찍었다|찍고|골랐다|택했다|체감했|다녀오|돌아갔|올라갔|사\s?봤|사두었|사간|가져갔|샀다|냈다|나왔다|들어왔다|걸렸다|망가졌|놀랐다|당황했|좋았다|아쉬웠|편했다|불편했다|복잡했다/gi,
   )
   const firstPersonResults = countMatches(
     text,
-    /우리(?:가|도|는| 가족)?[^.!?。！？]{0,50}(?:실제|그랬|쓰는|잡아둔|가입|갱신|선택|수준|냈|샀|받)/gi,
+    /(?:나(?:는|도|의|에게)?|내가|우리(?:가|도|는| 가족)?)[^.!?。！？]{0,50}(?:실제|그랬|쓰는|써|잡아둔|가입|갱신|선택|주문|시켜|먹|들르|다녀|걸|타|찾|확인|신청|수준|냈|샀|받|가져)/gi,
   )
   return completedActions + firstPersonResults
 }
@@ -176,7 +176,10 @@ export function evaluateContentQuality(
     if (item.text.length < 1200) addFactor(factors, 'thin', '본문이 얇음', 24, `${item.text.length.toLocaleString()}자`)
     else if (item.text.length < 1800) addFactor(factors, 'short', '설명이 다소 짧음', 12, `${item.text.length.toLocaleString()}자`)
 
-    if (item.evidenceSignals === 0) addFactor(factors, 'experience', '직접 경험 신호 부족', 25, '행동·선택·결과를 보여주는 1인칭 근거가 없습니다.')
+    const sourceBackedResearch = item.externalLinkCount >= 3
+      && /공식 (?:자료|안내|페이지)|자료를 (?:찾|대조|확인)|조사해서|조사하며|검증된|가기 전에|계획을 짜|식단표를 짜/i.test(item.text)
+    if (item.evidenceSignals < 3 && sourceBackedResearch) addFactor(factors, 'experience', '현장·실행 검증 전', 5, '공식 자료에 근거한 계획형 글이며 직접 실행 결과는 아직 충분하지 않습니다.')
+    else if (item.evidenceSignals === 0) addFactor(factors, 'experience', '직접 경험 신호 부족', 25, '행동·선택·결과를 보여주는 1인칭 근거가 없습니다.')
     else if (item.evidenceSignals === 1) addFactor(factors, 'experience', '경험 근거가 약함', 15, '경험 표현 1개')
     else if (item.evidenceSignals < 3) addFactor(factors, 'experience', '경험 근거가 다소 약함', 8, `경험 표현 ${item.evidenceSignals}개`)
 
