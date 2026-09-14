@@ -48,7 +48,7 @@ export interface QualityReview {
 interface PreparedPost {
   post: Post
   text: string
-  tokens: Set<string>
+  shingles: Set<string>
   headingCount: number
   evidenceSignals: number
   specificitySignals: number
@@ -80,7 +80,7 @@ function countExperienceSignals(text: string): number {
   // 완료된 행동·관찰·결과만 센다. "방문하세요", "직접 확인" 같은 안내문은 제외한다.
   const completedActions = countMatches(
     text,
-    /적이 있|써\s?봤|해\s?봤|가\s?봤|타\s?봤|먹어\s?봤|다녀왔|겪었|예약했|방문했|사용했|이용했|구매했|주문했|결제했|가입했|신청했|교체했|선택했|비교했|확인했|시작했|갈아탔|옮겼|바꿨|포기했|준비했|알아봤|알게 됐|받았|돌려받|샀다|냈다|나왔다|걸렸다|놀랐다|당황했|좋았다|아쉬웠|편했다|불편했다|복잡했다/gi,
+    /적이 있|써\s?봤|해\s?봤|가\s?봤|타\s?봤|먹어\s?봤|끓여\s?봤|열어\s?봤|기다려\s?봤|걸어\s?봤|물어\s?봤|다녀왔|겪었|헤맸|착각했|예약했|방문했|사용했|이용했|구매했|주문했|결제했|가입했|신청했|교체했|선택했|비교했|확인했|시작했|계약했|지원했|갈아탔|옮겼|바꿨|포기했|준비했|알아봤|알게 됐|받았|돌려받|찾아봤|찾게 됐|찍어뒀|찍었다|골랐다|택했다|체감했|다녀오|돌아갔|올라갔|사\s?봤|사두었|샀다|냈다|나왔다|들어왔다|걸렸다|망가졌|놀랐다|당황했|좋았다|아쉬웠|편했다|불편했다|복잡했다/gi,
   )
   const firstPersonResults = countMatches(
     text,
@@ -89,12 +89,14 @@ function countExperienceSignals(text: string): number {
   return completedActions + firstPersonResults
 }
 
-function tokenSet(text: string): Set<string> {
-  return new Set(text
+function shingleSet(text: string, size = 4): Set<string> {
+  const words = text
     .toLowerCase()
     .replace(/[^0-9a-z가-힣\s]/g, ' ')
     .split(/\s+/)
-    .filter((word) => word.length >= 3))
+    .filter((word) => word.length >= 2)
+  if (words.length < size) return new Set(words)
+  return new Set(words.slice(0, -(size - 1)).map((_, index) => words.slice(index, index + size).join(' ')))
 }
 
 function similarity(a: Set<string>, b: Set<string>): number {
@@ -120,7 +122,7 @@ function prepare(post: Post): PreparedPost {
   return {
     post,
     text,
-    tokens: tokenSet(text),
+    shingles: shingleSet(text),
     headingCount: countMatches(post.content, /<h[2-4]\b/gi),
     evidenceSignals: countExperienceSignals(text),
     specificitySignals: countMatches(text, /(?:\$|USD|달러|원|%|마일|분|시간|개월|년|월|일|번|개|명|시|[0-9][0-9,.]*)/gi),
@@ -158,7 +160,7 @@ export function evaluateContentQuality(
     let similarSlug: string | null = null
     for (const other of prepared) {
       if (other.post.id === post.id) continue
-      const value = similarity(item.tokens, other.tokens)
+      const value = similarity(item.shingles, other.shingles)
       if (value > maxSimilarity) {
         maxSimilarity = value
         similarSlug = other.post.slug
@@ -194,8 +196,8 @@ export function evaluateContentQuality(
     if (item.genericPatternCount >= 3) addFactor(factors, 'template', '정형 문구 반복 위험', 10, `상투 문구 ${item.genericPatternCount}개`)
     else if (item.genericPatternCount > 0) addFactor(factors, 'template', '정형 문구 확인 필요', 4, `상투 문구 ${item.genericPatternCount}개`)
 
-    if (maxSimilarity >= 0.1) addFactor(factors, 'duplicate', '다른 글과 어휘가 매우 유사함', 14, `${similarSlug}와 ${Math.round(maxSimilarity * 100)}% 유사`)
-    else if (maxSimilarity >= 0.075) addFactor(factors, 'duplicate', '유사 문서 확인 필요', 7, `${similarSlug}와 ${Math.round(maxSimilarity * 100)}% 유사`)
+    if (maxSimilarity >= 0.12) addFactor(factors, 'duplicate', '다른 글과 연속 문구가 매우 유사함', 14, `${similarSlug}와 ${Math.round(maxSimilarity * 100)}% 유사`)
+    else if (maxSimilarity >= 0.06) addFactor(factors, 'duplicate', '반복 문구 확인 필요', 7, `${similarSlug}와 ${Math.round(maxSimilarity * 100)}% 유사`)
 
     if (!post.meta_description?.trim()) addFactor(factors, 'meta', '메타 설명 없음', 5, '검색 결과 설명을 직접 작성하세요.')
     if (!post.cluster) addFactor(factors, 'cluster', '주제 연결 없음', 4, '관련 가이드에 연결되지 않았습니다.')
