@@ -1,0 +1,25 @@
+-- visa-bulletin-where-to-check: 2026-09-14 재작성 때 얕아진 실용 정보 보강
+--
+-- 배경: 전체 재작성으로 3,044자 → 1,815자(-40%), 외부 근거 링크도 7개 → 2개로 줄었다.
+-- 표 읽는 순서는 정확한데, 초보가 실제로 막히는 앞단(내 우선일자가 어디 있나,
+-- 내 카테고리가 뭔가, 영사 경로면 어느 표를 보나)의 답이 빠져 있었다.
+--
+-- 2026-09-15 확인해 추가한 것:
+--   1. 0단계 — 우선일자는 I-130 접수일이고 I-797 Notice of Action에 인쇄돼 있다
+--      (USCIS 우선일자 안내 링크)
+--   2. F1/F2A/F2B/F3/F4 카테고리 정의 (USCIS 가족초청 카테고리 링크)
+--   3. 경로별로 봐야 할 표가 다르다 — 미국 내 I-485는 USCIS가 지정한 차트,
+--      해외 영사(NVC) 서류 제출은 불러틴의 Dates for Filing 기준
+--   4. 확인 루틴 — USCIS 공지 시점이 고정돼 있지 않으므로 접수 직전 재확인
+--   5. 확인일 2026-09-15 갱신, 체크리스트에 0단계·경로 반영, 존댓말이던 excerpt 정리
+--
+-- 본문 내 <img> 는 그대로 유지한다.
+-- 되돌리기: post_revisions 에 이 수정 직전 스냅샷이 자동 적재된다.
+
+update posts
+set
+  content = $content$<p>F2A 영주권 절차를 진행하면서 나는 매달 비자 불러틴 발표를 기다려봤다. 처음에는 검색 결과의 요약 글을 보다가 이미 새 표가 나왔는데도 이전 달 자료를 보고 “아직 안 나왔나”라고 착각했다. 그 뒤로는 <strong>국무부 원본과 USCIS 적용 차트 페이지 두 곳만</strong> 즐겨찾기에 넣고 확인한다.</p><img class="rounded-lg" src="https://jcdznrqhpaezhleqxayt.supabase.co/storage/v1/object/public/blog-images/licensed/pexels-11773871.jpg" alt="매달 비자 불러틴 확인 날짜를 달력에 표시하는 모습" width="75%"><p><strong>정보 확인일: 2026-09-15</strong> · 비자 문호와 적용 차트는 매달 달라진다. 이 글은 내 사례의 승인 가능일을 예측하는 글이 아니라, 공식 표를 잘못 보지 않기 위한 확인 순서다.</p><h2>0. 비교할 내 날짜부터 찾는다</h2><p>표를 열기 전에 비교 기준이 되는 <strong>우선일자(priority date)</strong>가 있어야 한다. 가족초청은 USCIS가 I-130 청원서를 접수한 날이 우선일자가 되고, 그 날짜는 USCIS가 보낸 <strong>I-797 Notice of Action</strong> 용지에 Priority Date로 인쇄돼 있다. 나도 처음에는 접수일, 승인일, 인터뷰 통지일을 헷갈렸는데 표와 비교할 날짜는 이 하나다. 통지서가 손에 없다면 청원자에게 사본을 요청하거나 케이스 번호로 상태를 조회해야 하고, 개념 자체는 <a target="_blank" rel="noopener noreferrer" href="https://www.uscis.gov/green-card/green-card-processes-and-procedures/visa-availability-and-priority-dates">USCIS의 우선일자 안내</a>에 정리돼 있다.</p><h2>1. 국무부 페이지에서 해당 월 원본을 연다</h2><p>원본은 미 국무부의 <a target="_blank" rel="noopener noreferrer" href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html">Visa Bulletin 공식 목록</a>이다. 페이지 상단의 Current Visa Bulletin에서 확인할 월을 열고, 표의 날짜 형식이 <strong>일-영문 월-연도(dd-mmm-yy)</strong>라는 점부터 확인한다. 검색 결과 제목만 보고 들어가지 않고 주소가 travel.state.gov인지 확인하니 오래된 표를 보는 실수가 줄었다.</p><p>발표일을 “매달 며칠”로 고정해 기다리지는 않는다. 국무부가 다음 달 불러틴을 미리 게시하는 경우가 많지만 고정된 보장 일정을 찾지 못했기 때문이다. 그래서 월 중순 무렵부터 공식 목록의 Current와 Upcoming 항목이 바뀌었는지를 본다.</p><h2>2. 내 카테고리와 출생국 열을 찾는다</h2><p>가족초청은 F1·F2A·F2B·F3·F4, 취업이민은 EB 분류에서 본인 카테고리를 찾는다. 가족초청 분류는 청원자의 신분과 신청인의 나이·혼인 여부로 갈린다(<a target="_blank" rel="noopener noreferrer" href="https://www.uscis.gov/green-card/green-card-eligibility/green-card-for-family-preference-immigrants">USCIS 가족초청 카테고리</a>).</p><ul><li><p><strong>F1</strong>: 시민권자의 21세 이상 미혼 자녀</p></li><li><p><strong>F2A</strong>: 영주권자의 배우자와 21세 미만 미혼 자녀</p></li><li><p><strong>F2B</strong>: 영주권자의 21세 이상 미혼 자녀</p></li><li><p><strong>F3</strong>: 시민권자의 기혼 자녀</p></li><li><p><strong>F4</strong>: 21세 이상 시민권자의 형제자매</p></li></ul><p>카테고리를 정했으면 국적이 아니라 일반적으로 <strong>chargeability country(대개 출생국)</strong>에 맞는 열을 선택한다. 한국처럼 별도 열이 없는 경우에는 보통 “All Chargeability Areas Except Those Listed” 열을 보지만, 교차 적용처럼 예외가 있을 수 있어 개인 사건은 서류와 공식 지침을 함께 확인해야 한다.</p><p>표의 <strong>C</strong>는 current, <strong>U</strong>는 unavailable을 뜻한다. 날짜가 적혀 있다면 내 priority date가 표의 cut-off date보다 앞선지 비교한다. 경계 날짜나 카테고리가 헷갈리면 표만으로 접수 결정을 내리지 않는다.</p><h2>3. 두 표의 역할을 나눠서 읽는다</h2><table><tbody><tr><td><strong>표</strong></td><td><strong>확인 목적</strong></td></tr><tr><td>Final Action Dates</td><td>비자 번호가 최종 승인 단계에 사용 가능한지 보는 기준</td></tr><tr><td>Dates for Filing</td><td>서류 제출 준비·접수가 가능한 범위를 보는 기준</td></tr></tbody></table><p>두 표 중 날짜가 더 빠른 쪽만 골라 보면 안 된다. 어느 표가 나에게 적용되는지는 내가 어느 경로로 진행하는지에 따라 갈린다.</p><h2>4. 내 경로에 맞는 표를 확인한다</h2><p><strong>미국 안에서 I-485 신분조정</strong>을 신청한다면 <a target="_blank" rel="noopener noreferrer" href="https://www.uscis.gov/visabulletininfo">USCIS Adjustment of Status Filing Charts</a>에서 가족초청과 취업이민 중 해당 항목을 연다. USCIS는 비자 수가 충분하다고 판단할 때 Dates for Filing 사용을 허용할 수 있고, 그렇지 않으면 Final Action Dates를 사용하도록 안내한다. 공지 시점이 고정돼 있지 않아서 나는 접수 직전에 이 페이지를 한 번 더 연다.</p><p><strong>해외에서 영사 인터뷰</strong>로 진행한다면 기준이 다르다. 불러틴 본문에는 그달 국가별 비자 신청 서류를 국무부 국립비자센터(NVC)에 제출할 수 있는 범위가 Dates for Filing 표로 안내되고, 실제 인터뷰 일정과 비자 발급은 Final Action Dates가 움직여야 진행된다. 그래서 영사 경로에서는 “서류를 준비해 보낼 수 있는 시점”과 “실제로 비자가 나오는 시점”을 같은 날짜로 보지 않는 편이 안전하다.</p><h2>매달 반복하는 다섯 줄</h2><ol><li><p>I-797에서 내 우선일자를 확인한다.</p></li><li><p>국무부 공식 목록에서 정확한 월을 연다.</p></li><li><p>가족·취업 카테고리와 chargeability 열을 찾는다.</p></li><li><p>Final Action Dates와 Dates for Filing을 구분한다.</p></li><li><p>미국 내 신분조정이면 USCIS의 그달 적용 표를, 영사 경로면 불러틴의 NVC 제출 기준을 확인한다.</p></li></ol><p>나는 이 순서로 바꾼 뒤 사설 사이트의 지난달 표를 보고 헤매는 일이 없어졌다. 문호가 가까워졌다면 <a href="/blog/korea-documents-us-immigration">한국 서류 번역·공증 준비 경험</a>도 함께 확인하되, 실제 접수 가능 여부는 최신 공식 공지와 본인 사건의 법률 자문을 기준으로 판단해야 한다.</p>$content$,
+  excerpt = $excerpt$F2A 절차를 진행하며 매달 확인한 순서 그대로, 비자 불러틴 보는 법을 정리했다. I-797에서 우선일자 찾기, F1~F4 카테고리 구분, Final Action Dates와 Dates for Filing의 차이, 미국 내 I-485와 해외 영사 경로에서 각각 어느 표를 봐야 하는지까지 공식 링크와 함께 담았다.$excerpt$,
+  meta_description = $meta$비자 불러틴 보는 순서: I-797에서 우선일자 확인, F1~F4 카테고리와 출생국 열 찾기, Final Action Dates와 Dates for Filing 구분, 경로별 적용 표 확인까지 공식 자료로 정리했다.$meta$,
+  updated_at = now()
+where slug = 'visa-bulletin-where-to-check';
