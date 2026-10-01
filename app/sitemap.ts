@@ -12,7 +12,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await getPublishedPosts().catch(() => [])
   const clusters = await getClusters().catch(() => [])
 
-  const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
+  // 색인 보류 글은 사이트맵에서 뺀다(robots noindex와 신호를 일치시킨다).
+  const postEntries: MetadataRoute.Sitemap = posts.filter((post) => !post.noindex).map((post) => ({
     url: `${siteUrl}/blog/${post.slug}`,
     lastModified: new Date(post.updated_at),
     changeFrequency: 'weekly',

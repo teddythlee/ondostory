@@ -55,6 +55,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: post.cover_image ? [post.cover_image] : [],
     },
     alternates: { canonical: url },
+    // 색인 보류 글(posts.noindex): 검색에서 빼되 내부 링크는 따라가게 follow를 남긴다.
+    ...(post.noindex ? { robots: { index: false, follow: true } } : {}),
   }
 }
 

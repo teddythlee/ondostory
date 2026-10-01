@@ -19,6 +19,8 @@ export interface Post {
   category: string | null
   cluster: string | null
   view_count: number
+  /** true면 robots noindex,follow + sitemap 제외. 글 자체는 사이트에 그대로 보인다. */
+  noindex: boolean
   /** 공백·HTML 제거 후 글자 수 (DB 생성 컬럼). 목록·에디터 글자수 표시용. */
   content_chars: number
   /** 스레드 게시용 훅(3줄). 발행 시 Buffer로 이 텍스트+링크가 나간다. null이면 게시 안 함. */
