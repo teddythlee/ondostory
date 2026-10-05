@@ -56,9 +56,8 @@ const DRAFT_SCHEMA = {
     category: { type: 'string', enum: ['후기', '정보'] },
     meta_title: { type: 'string', description: '60자 내외.' },
     meta_description: { type: 'string', description: '140~160자. excerpt와 다르게.' },
-    social_hook: { type: 'string', description: '스레드 훅 3줄·200자 내외. 답을 주지 말고 궁금하게. 실제 경험/사실 기반.' },
   },
-  required: ['topic_reasoning', 'title', 'slug', 'content', 'excerpt', 'tags', 'cluster', 'category', 'meta_title', 'meta_description', 'social_hook'],
+  required: ['topic_reasoning', 'title', 'slug', 'content', 'excerpt', 'tags', 'cluster', 'category', 'meta_title', 'meta_description'],
 }
 
 const MISSION = `
