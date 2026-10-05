@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { updatePost, deletePost } from '@/lib/posts'
 import { notifyIndexNow } from '@/lib/google-indexing'
-import { pushToThreads } from '@/lib/social/threads'
 import { requireAdmin } from '@/lib/auth'
 
 interface Props { params: Promise<{ id: string }> }
@@ -25,9 +24,6 @@ export async function PATCH(req: NextRequest, { params }: Props) {
 
     if (post.status === 'published') {
       await notifyIndexNow(postUrl)
-      // 스레드 게시(Buffer). 내부에서 예외를 삼켜 발행을 블로킹하지 않는다.
-      // 재편집(published→published)에도 unique(post_id, platform)로 중복 게시가 막힌다.
-      await pushToThreads(post)
     }
 
     return NextResponse.json(post)
